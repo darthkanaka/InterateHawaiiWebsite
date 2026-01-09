@@ -212,17 +212,154 @@ nav {
    ============================================ */
 
 .hero {
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 300vh;
+  min-height: 300dvh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 100px 20px 60px;
   position: relative;
-  background: 
+  background:
     radial-gradient(ellipse at 50% 0%, rgba(123, 97, 255, 0.15) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 80%, rgba(0, 240, 255, 0.1) 0%, transparent 40%),
     var(--dark);
+}
+
+/* ============================================
+   CARVING ANIMATION
+   ============================================ */
+
+.carving-container {
+  position: sticky;
+  top: 80px;
+  width: 100%;
+  max-width: 100%;
+  height: calc(100vh - 160px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  margin-bottom: 40px;
+}
+
+.carving-svg {
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+  max-height: 600px;
+}
+
+/* Network shape - the main outline */
+.network-shape {
+  fill: none;
+  stroke: url(#networkGradient);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.3));
+}
+
+/* Blade path - invisible guide path */
+.blade-path {
+  fill: none;
+  stroke: none;
+}
+
+/* The blade element */
+.blade {
+  opacity: 1;
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.8));
+}
+
+/* Blade trail effect */
+.blade-trail {
+  fill: none;
+  stroke: url(#bladeGradient);
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.5));
+}
+
+/* Network nodes */
+.network-nodes .node {
+  fill: var(--primary);
+  filter: drop-shadow(0 0 6px var(--primary));
+  opacity: 0.8;
+}
+
+/* Network connection lines */
+.network-connections line {
+  stroke: rgba(0, 240, 255, 0.2);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+/* Fragment particles */
+.fragment {
+  opacity: 1;
+}
+
+.fragment-shard {
+  fill: url(#bladeGradient);
+}
+
+.fragment-chip {
+  fill: var(--primary);
+}
+
+/* Gold flash effect on fragments */
+.fragment.flash {
+  fill: #FFD700;
+  filter: drop-shadow(0 0 8px #FFD700);
+}
+
+/* Scroll hint */
+.carving-scroll-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.7;
+  animation: bounceHint 2s ease-in-out infinite;
+}
+
+.carving-scroll-hint svg {
+  width: 20px;
+  height: 20px;
+}
+
+@keyframes bounceHint {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(8px); }
+}
+
+/* Progress indicator for carving */
+.carving-progress {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 3px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.carving-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 3px;
+  transition: width 0.1s ease-out;
 }
 
 .hero-grid {
@@ -247,9 +384,14 @@ nav {
 }
 
 .hero-content {
-  position: relative;
+  position: sticky;
+  top: calc(100vh - 280px);
   z-index: 10;
   text-align: center;
+  padding: 0 20px;
+  background: linear-gradient(to bottom, transparent 0%, var(--dark) 30%);
+  padding-top: 40px;
+  margin-top: -100px;
 }
 
 .hero-badge {
@@ -898,6 +1040,20 @@ footer {
     font-size: 2.5rem;
   }
 
+  /* Carving animation tablet */
+  .carving-container {
+    height: calc(100vh - 200px);
+  }
+
+  .carving-svg {
+    max-width: 700px;
+    max-height: 500px;
+  }
+
+  .hero-content {
+    top: calc(100vh - 320px);
+  }
+
   .hero h1 {
     font-size: 3.5rem;
   }
@@ -1000,6 +1156,22 @@ footer {
 
   .hero {
     padding: 0 60px;
+  }
+
+  /* Carving animation desktop */
+  .carving-container {
+    height: calc(100vh - 160px);
+    top: 100px;
+  }
+
+  .carving-svg {
+    max-width: 800px;
+    max-height: 600px;
+  }
+
+  .hero-content {
+    top: calc(100vh - 350px);
+    padding-top: 60px;
   }
 
   .hero h1 {
