@@ -89,11 +89,11 @@ nav {
    ============================================ */
 
 .hero {
-  min-height: 100vh;
+  min-height: 150vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 100px 24px 60px;
+  padding: 150px 24px 60px;
   background: var(--dark);
   position: relative;
   overflow: hidden;
@@ -107,7 +107,7 @@ nav {
   transform: translate(-50%, -50%);
   width: 80%;
   max-width: 500px;
-  opacity: 0.08;
+  opacity: 0.25;
   pointer-events: none;
   z-index: 1;
 }
@@ -119,8 +119,8 @@ nav {
 
 .hero-shape path {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.5);
-  stroke-width: 1;
+  stroke: rgba(255, 255, 255, 0.8);
+  stroke-width: 2;
 }
 
 .hero-content {
