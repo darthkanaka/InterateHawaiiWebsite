@@ -5,7 +5,7 @@ export default defineConfig({
   base: '/InterateHawaiiWebsite/',
   publicDir: 'public',
   build: {
-    outDir: 'dist',
+    outDir: 'docs',
   },
   server: {
     port: 3000,
