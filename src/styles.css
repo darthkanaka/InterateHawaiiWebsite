@@ -91,36 +91,40 @@ nav {
 .hero {
   min-height: 150vh;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 150px 24px 60px;
+  padding: 80px 24px 60px;
   background: var(--dark);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
-/* Background shape */
+/* Background shape - centered behind content */
 .hero-shape {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 80%;
   max-width: 500px;
-  opacity: 0.25;
+  opacity: 0.15;
   pointer-events: none;
   z-index: 1;
+  will-change: transform, opacity;
 }
 
 .hero-shape svg {
   width: 100%;
   height: auto;
+  overflow: visible;
 }
 
 .hero-shape path {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.8);
-  stroke-width: 2;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .hero-content {

@@ -4,7 +4,7 @@
  */
 
 import {
-  createTimeline,
+  animate,
   onScroll,
   morphTo,
 } from 'animejs';
@@ -16,38 +16,47 @@ document.addEventListener('DOMContentLoaded', () => {
 function initHeroMorph() {
   const hero = document.getElementById('hero');
   const morphShape = document.getElementById('morphShape');
+  const smoothShape = document.getElementById('smoothShape');
+  const heroShape = document.querySelector('.hero-shape');
 
-  if (!hero || !morphShape) {
-    console.log('Elements not found:', { hero, morphShape });
+  if (!hero || !morphShape || !smoothShape) {
+    console.error('Elements not found:', { hero, morphShape, smoothShape });
     return;
   }
 
   console.log('Initializing morph animation');
+  console.log('Hero element:', hero);
+  console.log('Hero height:', hero.offsetHeight);
+  console.log('Document height:', document.documentElement.scrollHeight);
 
-  // The smooth, pleasant shape (end state)
-  const smoothPath = "M 200,50 Q 230,90 260,120 Q 300,150 330,190 Q 355,240 350,290 Q 340,340 310,360 Q 270,380 230,375 Q 200,370 170,375 Q 130,380 90,360 Q 60,340 50,290 Q 45,240 70,190 Q 100,150 140,120 Q 170,90 200,50 Z";
-
-  // Create timeline with scroll sync
-  const morphTimeline = createTimeline({
-    defaults: {
-      ease: 'linear',
-    },
+  // Morph from jagged to smooth shape, synced to scroll
+  animate(morphShape, {
+    d: morphTo('#smoothShape'),
+    ease: 'linear',
     autoplay: onScroll({
       target: hero,
       enter: 'top top',
       leave: 'bottom top',
       sync: true,
-      onEnter: () => console.log('Scroll entered'),
-      onLeave: () => console.log('Scroll left'),
-      onUpdate: (scroll) => console.log('Scroll progress:', scroll.progress),
+      debug: true,
+      onEnter: (self) => console.log('Entered scroll zone', self.progress),
+      onLeave: (self) => console.log('Left scroll zone', self.progress),
+      onUpdate: (self) => console.log('Scroll progress:', self.progress),
     }),
   });
 
-  // Add the morphTo animation
-  morphTimeline.add(morphShape, {
-    d: morphTo(smoothPath),
-    duration: 1000,
+  // Also animate opacity and scale for additional visual effect
+  animate(heroShape, {
+    opacity: [0.15, 0.4],
+    scale: [1, 1.1],
+    ease: 'linear',
+    autoplay: onScroll({
+      target: hero,
+      enter: 'top top',
+      leave: 'bottom top',
+      sync: true,
+    }),
   });
 
-  console.log('Morph animation initialized');
+  console.log('Animations initialized');
 }
