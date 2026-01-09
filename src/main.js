@@ -1,13 +1,9 @@
 /**
  * Iterate Hawaii - Anime.js 4.0
- * Using morphTo with scroll sync
+ * Using svg.morphTo with scroll sync
  */
 
-import {
-  animate,
-  onScroll,
-  morphTo,
-} from 'animejs';
+import { animate, svg, onScroll } from 'animejs';
 
 document.addEventListener('DOMContentLoaded', () => {
   initHeroMorph();
@@ -25,13 +21,11 @@ function initHeroMorph() {
   }
 
   console.log('Initializing morph animation');
-  console.log('Hero element:', hero);
-  console.log('Hero height:', hero.offsetHeight);
-  console.log('Document height:', document.documentElement.scrollHeight);
 
   // Morph from jagged to smooth shape, synced to scroll
+  // Use svg.morphTo() to morph the d attribute of the path
   animate(morphShape, {
-    d: morphTo('#smoothShape'),
+    d: svg.morphTo('#smoothShape'),
     ease: 'linear',
     autoplay: onScroll({
       target: hero,
@@ -39,16 +33,12 @@ function initHeroMorph() {
       leave: 'bottom top',
       sync: true,
       debug: true,
-      onEnter: (self) => console.log('Entered scroll zone', self.progress),
-      onLeave: (self) => console.log('Left scroll zone', self.progress),
-      onUpdate: (self) => console.log('Scroll progress:', self.progress),
     }),
   });
 
-  // Also animate opacity and scale for additional visual effect
+  // Also animate opacity for additional visual effect
   animate(heroShape, {
     opacity: [0.15, 0.4],
-    scale: [1, 1.1],
     ease: 'linear',
     autoplay: onScroll({
       target: hero,
