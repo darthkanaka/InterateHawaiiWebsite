@@ -23,9 +23,9 @@ function initHeroMorph() {
   console.log('Initializing morph animation');
 
   // Morph from jagged to smooth shape, synced to scroll
-  // Use svg.morphTo() to morph the d attribute of the path
+  // Use svg.morphTo() with the actual element, not a selector string
   animate(morphShape, {
-    d: svg.morphTo('#smoothShape'),
+    d: svg.morphTo(smoothShape),
     ease: 'linear',
     autoplay: onScroll({
       target: hero,
