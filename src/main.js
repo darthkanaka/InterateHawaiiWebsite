@@ -146,15 +146,15 @@ function initAllAnimations() {
 
 function initCarvingAnimation() {
   const heroSection = document.getElementById('heroSection');
-  const carvingContainer = document.getElementById('carvingContainer');
   const bladePath = document.getElementById('bladePath');
   const blade = document.getElementById('blade');
   const networkShape = document.getElementById('networkShapeRough');
   const bladeTrail = document.getElementById('bladeTrail');
   const fragmentsContainer = document.getElementById('fragmentsContainer');
   const scrollHint = document.getElementById('carvingScrollHint');
+  const carvingBg = document.getElementById('carvingContainer');
 
-  if (!bladePath || !blade || !networkShape) return;
+  if (!bladePath || !blade || !networkShape || !heroSection) return;
 
   // The smooth version of the shape (morphTo target)
   const smoothPath = "M 150,300 Q 175,250 200,200 Q 240,140 320,100 Q 400,70 480,95 Q 560,120 620,170 Q 665,230 670,300 Q 665,380 620,440 Q 560,490 480,495 Q 400,500 320,480 Q 240,455 200,400 Q 165,350 150,300 Z";
@@ -170,9 +170,9 @@ function initCarvingAnimation() {
   let fragmentSpawnPoints = [];
 
   // Pre-calculate fragment spawn points along the path
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 25; i++) {
     fragmentSpawnPoints.push({
-      progress: i / 40,
+      progress: i / 25,
       spawned: false
     });
   }
@@ -187,10 +187,9 @@ function initCarvingAnimation() {
       ease: 'linear',
     },
     autoplay: onScroll({
-      target: carvingContainer,
-      container: heroSection,
-      enter: 'top 90%',
-      leave: 'top 10%',
+      target: heroSection,
+      enter: 'top top',
+      leave: 'bottom top',
       sync: true,
       onUpdate: (scroll) => {
         const progress = scroll.progress;
@@ -209,10 +208,15 @@ function initCarvingAnimation() {
         });
 
         // Hide scroll hint after starting to scroll
-        if (scrollHint && progress > 0.05) {
+        if (scrollHint && progress > 0.02) {
           scrollHint.style.opacity = '0';
-        } else if (scrollHint && progress <= 0.05) {
-          scrollHint.style.opacity = '0.7';
+        } else if (scrollHint && progress <= 0.02) {
+          scrollHint.style.opacity = '0.5';
+        }
+
+        // Increase opacity of background as we carve
+        if (carvingBg) {
+          carvingBg.style.opacity = 0.15 + (progress * 0.25);
         }
 
         lastProgress = progress;
@@ -240,18 +244,18 @@ function initCarvingAnimation() {
 
   // Fade in network connections as carving progresses
   carvingTimeline.add('.network-connections line', {
-    opacity: [0.2, 0.8],
-    strokeDasharray: ['4 4', '0 0'],
+    opacity: [0.15, 0.4],
+    strokeDasharray: ['3 3', '0 0'],
     duration: 1000,
-    delay: stagger(30),
+    delay: stagger(40),
   }, 0);
 
   // Pulse nodes as blade passes
   carvingTimeline.add('.network-nodes .node', {
-    scale: [1, 1.5, 1],
-    opacity: [0.8, 1, 0.9],
-    duration: 200,
-    delay: stagger(60),
+    scale: [1, 1.3, 1],
+    opacity: [0.5, 0.8, 0.6],
+    duration: 150,
+    delay: stagger(50),
   }, 0);
 }
 
@@ -285,15 +289,15 @@ function spawnFragmentAtPosition(x, y, container) {
       fragment.classList.add('fragment', 'fragment-shard');
     }
 
-    // Start with gold flash
-    fragment.style.fill = '#FFD700';
-    fragment.style.filter = 'drop-shadow(0 0 10px #FFD700)';
+    // Start with warm amber
+    fragment.style.fill = '#E8C87A';
+    fragment.style.filter = 'drop-shadow(0 0 6px #C9A66B)';
 
     container.appendChild(fragment);
 
     // Animate the fragment bursting outward from the cut point
     const angle = random(0, Math.PI * 2);
-    const distance = random(40, 120);
+    const distance = random(30, 80);
     const targetX = Math.cos(angle) * distance;
     const targetY = Math.sin(angle) * distance;
 
@@ -305,11 +309,11 @@ function spawnFragmentAtPosition(x, y, container) {
       }
     });
 
-    // Flash gold then fade to cyan
+    // Flash warm then fade to muted
     fragmentTL.add(fragment, {
-      fill: ['#FFD700', '#00f0ff'],
-      filter: ['drop-shadow(0 0 10px #FFD700)', 'drop-shadow(0 0 4px #00f0ff)'],
-      duration: 100,
+      fill: ['#E8C87A', '#888888'],
+      filter: ['drop-shadow(0 0 6px #C9A66B)', 'drop-shadow(0 0 2px #666666)'],
+      duration: 80,
     });
 
     // Burst outward and fade

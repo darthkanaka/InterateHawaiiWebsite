@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iterate Hawaii | AI Solutions for Hawaii</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/InterateHawaiiWebsite/assets/index-tMa_TfgB.js"></script>
-  <link rel="stylesheet" crossorigin href="/InterateHawaiiWebsite/assets/index-C8YqIHHj.css">
+  <script type="module" crossorigin src="/InterateHawaiiWebsite/assets/index-BBv8tBZH.js"></script>
+  <link rel="stylesheet" crossorigin href="/InterateHawaiiWebsite/assets/index-CeWpJfuM.css">
 </head>
 <body>
   <!-- Scroll Progress -->
@@ -36,40 +36,21 @@
   <section class="hero" id="heroSection">
     <div class="hero-grid"></div>
 
-    <!-- Carving Animation Container -->
-    <div class="carving-container" id="carvingContainer">
+    <!-- Carving Animation - Background Element -->
+    <div class="carving-background" id="carvingContainer">
       <svg class="carving-svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <!-- Blade gradient -->
-          <linearGradient id="bladeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#00f0ff"/>
-            <stop offset="100%" style="stop-color:#7b61ff"/>
-          </linearGradient>
-
-          <!-- Glow filter for blade trail -->
+          <!-- Subtle glow for blade -->
           <filter id="bladeGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+            <feGaussianBlur stdDeviation="2" result="blur"/>
             <feMerge>
-              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="blur"/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
-
-          <!-- Fragment gold flash gradient -->
-          <linearGradient id="goldFlash" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#FFD700"/>
-            <stop offset="100%" style="stop-color:#FFA500"/>
-          </linearGradient>
-
-          <!-- Network shape gradient -->
-          <linearGradient id="networkGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:#00f0ff;stop-opacity:0.8"/>
-            <stop offset="50%" style="stop-color:#7b61ff;stop-opacity:0.8"/>
-            <stop offset="100%" style="stop-color:#00e096;stop-opacity:0.8"/>
-          </linearGradient>
         </defs>
 
-        <!-- The rough/jagged network shape (initial state) -->
+        <!-- The rough/jagged network shape -->
         <path id="networkShapeRough" class="network-shape" d="
           M 150,300
           L 180,250 L 165,245 L 200,200 L 185,195 L 220,150 L 235,155
@@ -88,45 +69,33 @@
         "/>
 
         <!-- Smooth motion path for blade (invisible) -->
-        <path id="bladePath" class="blade-path" d="
-          M 150,300
-          Q 175,250 200,200
-          Q 240,140 320,100
-          Q 400,70 480,95
-          Q 560,120 620,170
-          Q 665,230 670,300
-          Q 665,380 620,440
-          Q 560,490 480,495
-          Q 400,500 320,480
-          Q 240,455 200,400
-          Q 165,350 150,300
-        "/>
+        <path id="bladePath" class="blade-path" d="M 150,300 Q 175,250 200,200 Q 240,140 320,100 Q 400,70 480,95 Q 560,120 620,170 Q 665,230 670,300 Q 665,380 620,440 Q 560,490 480,495 Q 400,500 320,480 Q 240,455 200,400 Q 165,350 150,300"/>
 
-        <!-- Trail effect (follows blade) -->
+        <!-- Trail effect -->
         <path id="bladeTrail" class="blade-trail" d="M 150,300 L 150,300"/>
 
-        <!-- The blade element -->
+        <!-- The blade element - warm amber wedge -->
         <g id="blade" class="blade">
-          <polygon points="0,-12 10,8 -10,8" fill="url(#bladeGradient)" filter="url(#bladeGlow)"/>
+          <polygon points="0,-8 6,5 -6,5" fill="#C9A66B" filter="url(#bladeGlow)"/>
         </g>
 
-        <!-- Network nodes/vertices -->
+        <!-- Network nodes -->
         <g id="networkNodes" class="network-nodes">
-          <circle cx="150" cy="300" r="6" class="node"/>
-          <circle cx="200" cy="200" r="5" class="node"/>
-          <circle cx="320" cy="100" r="7" class="node"/>
-          <circle cx="400" cy="90" r="6" class="node"/>
-          <circle cx="520" cy="100" r="5" class="node"/>
-          <circle cx="620" cy="170" r="6" class="node"/>
-          <circle cx="670" cy="300" r="7" class="node"/>
-          <circle cx="620" cy="440" r="5" class="node"/>
-          <circle cx="500" cy="490" r="6" class="node"/>
-          <circle cx="370" cy="490" r="5" class="node"/>
-          <circle cx="260" cy="440" r="6" class="node"/>
-          <circle cx="200" cy="340" r="5" class="node"/>
+          <circle cx="150" cy="300" r="3" class="node"/>
+          <circle cx="200" cy="200" r="2.5" class="node"/>
+          <circle cx="320" cy="100" r="3.5" class="node"/>
+          <circle cx="400" cy="90" r="3" class="node"/>
+          <circle cx="520" cy="100" r="2.5" class="node"/>
+          <circle cx="620" cy="170" r="3" class="node"/>
+          <circle cx="670" cy="300" r="3.5" class="node"/>
+          <circle cx="620" cy="440" r="2.5" class="node"/>
+          <circle cx="500" cy="490" r="3" class="node"/>
+          <circle cx="370" cy="490" r="2.5" class="node"/>
+          <circle cx="260" cy="440" r="3" class="node"/>
+          <circle cx="200" cy="340" r="2.5" class="node"/>
         </g>
 
-        <!-- Connection lines between nodes -->
+        <!-- Connection lines -->
         <g id="networkConnections" class="network-connections">
           <line x1="150" y1="300" x2="200" y2="200"/>
           <line x1="200" y1="200" x2="320" y2="100"/>
@@ -140,26 +109,15 @@
           <line x1="370" y1="490" x2="260" y2="440"/>
           <line x1="260" y1="440" x2="200" y2="340"/>
           <line x1="200" y1="340" x2="150" y2="300"/>
-          <!-- Cross connections -->
           <line x1="200" y1="200" x2="400" y2="90"/>
           <line x1="400" y1="90" x2="620" y2="170"/>
           <line x1="620" y1="170" x2="620" y2="440"/>
           <line x1="500" y1="490" x2="260" y2="440"/>
-          <line x1="320" y1="100" x2="520" y2="100"/>
-          <line x1="370" y1="490" x2="200" y2="340"/>
         </g>
 
         <!-- Fragment particles container -->
         <g id="fragmentsContainer" class="fragments-container"></g>
       </svg>
-
-      <!-- Scroll indicator -->
-      <div class="carving-scroll-hint" id="carvingScrollHint">
-        <span>Scroll to carve</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 5v14M5 12l7 7 7-7"/>
-        </svg>
-      </div>
     </div>
 
     <div class="hero-content">
@@ -173,6 +131,13 @@
         <button class="btn-primary">Get Started</button>
         <button class="btn-secondary">See How It Works</button>
       </div>
+    </div>
+
+    <!-- Scroll indicator at bottom of hero -->
+    <div class="scroll-hint" id="carvingScrollHint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12l7 7 7-7"/>
+      </svg>
     </div>
   </section>
 
