@@ -124,8 +124,8 @@ function initLoader() {
 // ============================================
 
 function initAllAnimations() {
+  initCarvingAnimation();
   initHeroWithSplitText();
-  initNeuralCanvas();
   initScrollAnimations();
   initDraggableCards();
   initSpringCards();
@@ -141,13 +141,208 @@ function initAllAnimations() {
 }
 
 // ============================================
+// CARVING ANIMATION - Scroll-synced blade carving
+// ============================================
+
+function initCarvingAnimation() {
+  const heroSection = document.getElementById('heroSection');
+  const bladePath = document.getElementById('bladePath');
+  const blade = document.getElementById('blade');
+  const networkShape = document.getElementById('networkShapeRough');
+  const bladeTrail = document.getElementById('bladeTrail');
+  const fragmentsContainer = document.getElementById('fragmentsContainer');
+  const scrollHint = document.getElementById('carvingScrollHint');
+
+  if (!bladePath || !blade || !networkShape) return;
+
+  // The smooth version of the shape (morphTo target)
+  const smoothPath = `
+    M 150,300
+    Q 175,250 200,200
+    Q 240,140 320,100
+    Q 400,70 480,95
+    Q 560,120 620,170
+    Q 665,230 670,300
+    Q 665,380 620,440
+    Q 560,490 480,495
+    Q 400,500 320,480
+    Q 240,455 200,400
+    Q 165,350 150,300
+    Z
+  `;
+
+  // Create motion path for the blade
+  const motionPath = createMotionPath(bladePath);
+
+  // Track scroll progress for fragment spawning
+  let lastProgress = 0;
+  let fragmentSpawnPoints = [];
+
+  // Pre-calculate fragment spawn points along the path
+  for (let i = 0; i < 30; i++) {
+    fragmentSpawnPoints.push({
+      progress: i / 30,
+      spawned: false
+    });
+  }
+
+  // Create the main scroll-synced timeline
+  const carvingTimeline = createTimeline({
+    defaults: {
+      ease: 'linear',
+    },
+    autoplay: onScroll({
+      target: heroSection,
+      enter: 'top top',
+      leave: 'bottom bottom',
+      sync: true,
+      onUpdate: (scroll) => {
+        const progress = scroll.progress;
+
+        // Spawn fragments at intervals
+        fragmentSpawnPoints.forEach(point => {
+          if (progress > point.progress && !point.spawned && progress > lastProgress) {
+            spawnFragment(blade, fragmentsContainer);
+            point.spawned = true;
+          } else if (progress < point.progress && point.spawned && progress < lastProgress) {
+            point.spawned = false;
+          }
+        });
+
+        // Hide scroll hint after starting to scroll
+        if (scrollHint && progress > 0.05) {
+          scrollHint.style.opacity = '0';
+        } else if (scrollHint && progress <= 0.05) {
+          scrollHint.style.opacity = '0.7';
+        }
+
+        lastProgress = progress;
+      }
+    }),
+  });
+
+  // Add blade motion along the path
+  carvingTimeline.add(blade, {
+    ...motionPath,
+    duration: 3000,
+  }, 0);
+
+  // Add shape morphing from jagged to smooth
+  carvingTimeline.add(networkShape, {
+    d: morphTo(smoothPath),
+    duration: 3000,
+  }, 0);
+
+  // Copy the blade path to the trail element and create drawable
+  bladeTrail.setAttribute('d', bladePath.getAttribute('d'));
+  const trailDrawable = createDrawable(bladeTrail);
+
+  // Animate the trail to draw along with blade progress
+  carvingTimeline.add(trailDrawable, {
+    draw: '0 1',
+    duration: 3000,
+  }, 0);
+
+  // Fade in network connections as carving progresses
+  carvingTimeline.add('.network-connections line', {
+    opacity: [0.2, 0.6],
+    strokeDasharray: ['4 4', '0 0'],
+    duration: 3000,
+    delay: stagger(80),
+  }, 0);
+
+  // Pulse nodes as blade passes
+  carvingTimeline.add('.network-nodes .node', {
+    scale: [1, 1.3, 1],
+    opacity: [0.8, 1, 0.9],
+    duration: 500,
+    delay: stagger(200),
+  }, 0);
+}
+
+// Fragment spawning function
+function spawnFragment(blade, container) {
+  if (!blade || !container) return;
+
+  // Get blade's current position
+  const bladeTransform = blade.getAttribute('transform') || '';
+  const translateMatch = bladeTransform.match(/translate\(([^,]+),([^)]+)\)/);
+
+  let x = 400, y = 300;
+  if (translateMatch) {
+    x = parseFloat(translateMatch[1]) || 400;
+    y = parseFloat(translateMatch[2]) || 300;
+  }
+
+  // Create multiple fragments per spawn
+  const fragmentCount = random(2, 5);
+  const spring = createSpring({ stiffness: 300, damping: 15 });
+
+  for (let i = 0; i < fragmentCount; i++) {
+    const isChip = random(0, 1) > 0.6;
+    const fragment = document.createElementNS('http://www.w3.org/2000/svg', isChip ? 'circle' : 'polygon');
+
+    if (isChip) {
+      // Small circular chip
+      fragment.setAttribute('cx', x);
+      fragment.setAttribute('cy', y);
+      fragment.setAttribute('r', random(2, 5));
+      fragment.classList.add('fragment', 'fragment-chip');
+    } else {
+      // Angular shard
+      const size = random(4, 10);
+      const points = `${x},${y - size} ${x + size * 0.6},${y + size * 0.5} ${x - size * 0.6},${y + size * 0.5}`;
+      fragment.setAttribute('points', points);
+      fragment.classList.add('fragment', 'fragment-shard');
+    }
+
+    // Start with gold flash
+    fragment.style.fill = '#FFD700';
+    fragment.style.filter = 'drop-shadow(0 0 8px #FFD700)';
+
+    container.appendChild(fragment);
+
+    // Animate the fragment bursting outward
+    const angle = random(0, Math.PI * 2);
+    const distance = random(30, 100);
+    const targetX = Math.cos(angle) * distance;
+    const targetY = Math.sin(angle) * distance;
+
+    // Create animation timeline for this fragment
+    const fragmentTL = createTimeline({
+      defaults: { ease: spring },
+      onComplete: () => {
+        fragment.remove();
+      }
+    });
+
+    // Flash gold then fade to cyan
+    fragmentTL.add(fragment, {
+      fill: ['#FFD700', '#00f0ff'],
+      filter: ['drop-shadow(0 0 8px #FFD700)', 'drop-shadow(0 0 4px #00f0ff)'],
+      duration: 150,
+    });
+
+    // Burst outward and fade
+    fragmentTL.add(fragment, {
+      translateX: targetX,
+      translateY: targetY,
+      rotate: random(-180, 180),
+      scale: [1, 0],
+      opacity: [1, 0],
+      duration: random(400, 800),
+    }, 50);
+  }
+}
+
+// ============================================
 // HERO with splitText()
 // ============================================
 
 function initHeroWithSplitText() {
   const heroTitle = document.getElementById('heroTitle');
   if (!heroTitle) return;
-  
+
   // Use Anime.js splitText utility
   const split = splitText(heroTitle, {
     chars: true,
@@ -155,23 +350,18 @@ function initHeroWithSplitText() {
   });
 
   // Animate characters from center
-  const heroTL = createTimeline({ 
+  const heroTL = createTimeline({
     defaults: { ease: 'outExpo' }
   });
 
   heroTL
-    .add('.hero-badge', {
-      opacity: [0, 1],
-      translateY: [20, 0],
-      duration: 800,
-    })
     .add(split.chars, {
       opacity: [0, 1],
       translateY: [50, 0],
       rotateX: [-90, 0],
       duration: 1000,
       delay: stagger(30, { from: 'center' }),
-    }, '-=400')
+    })
     .add('.hero-sub', {
       opacity: [0, 1],
       translateY: [20, 0],
@@ -184,77 +374,7 @@ function initHeroWithSplitText() {
     }, '-=500');
 }
 
-// ============================================
-// NEURAL NETWORK CANVAS (using random utility)
-// ============================================
-
-function initNeuralCanvas() {
-  const canvas = document.getElementById('neuralCanvas');
-  if (!canvas) return;
-  
-  const ctx = canvas.getContext('2d');
-  let nodes = [];
-  let width, height;
-
-  function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    initNodes();
-  }
-
-  function initNodes() {
-    nodes = [];
-    const count = width < 600 ? 30 : 60;
-    for (let i = 0; i < count; i++) {
-      nodes.push({
-        x: random(0, width),
-        y: random(0, height),
-        vx: random(-0.5, 0.5),
-        vy: random(-0.5, 0.5),
-        radius: random(1, 3),
-      });
-    }
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, width, height);
-    
-    nodes.forEach((node, i) => {
-      node.x += node.vx;
-      node.y += node.vy;
-      
-      // Bounce off edges
-      if (node.x < 0 || node.x > width) node.vx *= -1;
-      if (node.y < 0 || node.y > height) node.vy *= -1;
-      
-      // Draw connections using mapRange for opacity
-      nodes.forEach((other, j) => {
-        if (i === j) return;
-        const dist = Math.hypot(node.x - other.x, node.y - other.y);
-        if (dist < 150) {
-          const opacity = mapRange(dist, 0, 150, 0.2, 0);
-          ctx.beginPath();
-          ctx.moveTo(node.x, node.y);
-          ctx.lineTo(other.x, other.y);
-          ctx.strokeStyle = `rgba(0, 240, 255, ${opacity})`;
-          ctx.stroke();
-        }
-      });
-      
-      // Draw node
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0, 240, 255, 0.6)';
-      ctx.fill();
-    });
-    
-    requestAnimationFrame(draw);
-  }
-
-  resize();
-  window.addEventListener('resize', resize);
-  draw();
-}
+// Neural canvas removed - replaced with carving animation
 
 // ============================================
 // SCROLL ANIMATIONS with onScroll()
