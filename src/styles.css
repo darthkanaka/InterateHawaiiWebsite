@@ -95,11 +95,45 @@ nav {
   justify-content: center;
   padding: 100px 24px 60px;
   background: var(--dark);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background shape */
+.hero-shape {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 500px;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-shape svg {
+  width: 100%;
+  height: auto;
+}
+
+.hero-shape path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1;
 }
 
 .hero-content {
+  position: relative;
+  z-index: 10;
   text-align: center;
   max-width: 800px;
+}
+
+/* Spacer for scroll testing */
+.spacer {
+  height: 100vh;
+  background: var(--dark);
 }
 
 .hero h1 {

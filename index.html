@@ -22,7 +22,26 @@
   </nav>
 
   <!-- Hero -->
-  <section class="hero">
+  <section class="hero" id="hero">
+    <!-- Background shape that morphs -->
+    <div class="hero-shape">
+      <svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
+        <!-- Sharp, jagged shape (starting state) -->
+        <path id="morphShape" d="
+          M 200,40
+          L 240,80 L 220,85 L 280,120 L 250,130
+          L 320,160 L 290,175 L 350,220 L 310,230
+          L 360,280 L 320,285 L 340,340 L 300,330
+          L 280,370 L 250,350 L 200,380
+          L 150,350 L 120,370 L 100,330 L 60,340
+          L 80,285 L 40,280 L 90,230 L 50,220
+          L 110,175 L 80,160 L 150,130 L 120,120
+          L 180,85 L 160,80
+          Z
+        "/>
+      </svg>
+    </div>
+
     <div class="hero-content">
       <h1>Simple AI. Powerful Results.</h1>
       <p class="hero-sub">We personalize AI to your company's real needs—automating tasks, building smarter experiences, and streamlining operations.</p>
@@ -32,6 +51,9 @@
       </div>
     </div>
   </section>
+
+  <!-- Spacer section so we can scroll -->
+  <section class="spacer"></section>
 
   <script type="module" src="/src/main.js"></script>
 </body>
