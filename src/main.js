@@ -146,6 +146,7 @@ function initAllAnimations() {
 
 function initCarvingAnimation() {
   const heroSection = document.getElementById('heroSection');
+  const carvingContainer = document.getElementById('carvingContainer');
   const bladePath = document.getElementById('bladePath');
   const blade = document.getElementById('blade');
   const networkShape = document.getElementById('networkShapeRough');
@@ -156,35 +157,29 @@ function initCarvingAnimation() {
   if (!bladePath || !blade || !networkShape) return;
 
   // The smooth version of the shape (morphTo target)
-  const smoothPath = `
-    M 150,300
-    Q 175,250 200,200
-    Q 240,140 320,100
-    Q 400,70 480,95
-    Q 560,120 620,170
-    Q 665,230 670,300
-    Q 665,380 620,440
-    Q 560,490 480,495
-    Q 400,500 320,480
-    Q 240,455 200,400
-    Q 165,350 150,300
-    Z
-  `;
+  const smoothPath = "M 150,300 Q 175,250 200,200 Q 240,140 320,100 Q 400,70 480,95 Q 560,120 620,170 Q 665,230 670,300 Q 665,380 620,440 Q 560,490 480,495 Q 400,500 320,480 Q 240,455 200,400 Q 165,350 150,300 Z";
 
   // Create motion path for the blade
   const motionPath = createMotionPath(bladePath);
+
+  // Get path length for position calculations
+  const pathLength = bladePath.getTotalLength();
 
   // Track scroll progress for fragment spawning
   let lastProgress = 0;
   let fragmentSpawnPoints = [];
 
   // Pre-calculate fragment spawn points along the path
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 40; i++) {
     fragmentSpawnPoints.push({
-      progress: i / 30,
+      progress: i / 40,
       spawned: false
     });
   }
+
+  // Copy the blade path to the trail element and create drawable
+  bladeTrail.setAttribute('d', bladePath.getAttribute('d'));
+  const trailDrawable = createDrawable(bladeTrail);
 
   // Create the main scroll-synced timeline
   const carvingTimeline = createTimeline({
@@ -192,20 +187,24 @@ function initCarvingAnimation() {
       ease: 'linear',
     },
     autoplay: onScroll({
-      target: heroSection,
-      enter: 'top top',
-      leave: 'bottom bottom',
+      target: carvingContainer,
+      container: heroSection,
+      enter: 'top 90%',
+      leave: 'top 10%',
       sync: true,
       onUpdate: (scroll) => {
         const progress = scroll.progress;
 
+        // Get current blade position along the path
+        const point = bladePath.getPointAtLength(progress * pathLength);
+
         // Spawn fragments at intervals
-        fragmentSpawnPoints.forEach(point => {
-          if (progress > point.progress && !point.spawned && progress > lastProgress) {
-            spawnFragment(blade, fragmentsContainer);
-            point.spawned = true;
-          } else if (progress < point.progress && point.spawned && progress < lastProgress) {
-            point.spawned = false;
+        fragmentSpawnPoints.forEach(spawnPoint => {
+          if (progress > spawnPoint.progress && !spawnPoint.spawned && progress > lastProgress) {
+            spawnFragmentAtPosition(point.x, point.y, fragmentsContainer);
+            spawnPoint.spawned = true;
+          } else if (progress < spawnPoint.progress && spawnPoint.spawned && progress < lastProgress) {
+            spawnPoint.spawned = false;
           }
         });
 
@@ -224,87 +223,77 @@ function initCarvingAnimation() {
   // Add blade motion along the path
   carvingTimeline.add(blade, {
     ...motionPath,
-    duration: 3000,
+    duration: 1000,
   }, 0);
 
   // Add shape morphing from jagged to smooth
   carvingTimeline.add(networkShape, {
     d: morphTo(smoothPath),
-    duration: 3000,
+    duration: 1000,
   }, 0);
-
-  // Copy the blade path to the trail element and create drawable
-  bladeTrail.setAttribute('d', bladePath.getAttribute('d'));
-  const trailDrawable = createDrawable(bladeTrail);
 
   // Animate the trail to draw along with blade progress
   carvingTimeline.add(trailDrawable, {
     draw: '0 1',
-    duration: 3000,
+    duration: 1000,
   }, 0);
 
   // Fade in network connections as carving progresses
   carvingTimeline.add('.network-connections line', {
-    opacity: [0.2, 0.6],
+    opacity: [0.2, 0.8],
     strokeDasharray: ['4 4', '0 0'],
-    duration: 3000,
-    delay: stagger(80),
+    duration: 1000,
+    delay: stagger(30),
   }, 0);
 
   // Pulse nodes as blade passes
   carvingTimeline.add('.network-nodes .node', {
-    scale: [1, 1.3, 1],
+    scale: [1, 1.5, 1],
     opacity: [0.8, 1, 0.9],
-    duration: 500,
-    delay: stagger(200),
+    duration: 200,
+    delay: stagger(60),
   }, 0);
 }
 
-// Fragment spawning function
-function spawnFragment(blade, container) {
-  if (!blade || !container) return;
-
-  // Get blade's current position
-  const bladeTransform = blade.getAttribute('transform') || '';
-  const translateMatch = bladeTransform.match(/translate\(([^,]+),([^)]+)\)/);
-
-  let x = 400, y = 300;
-  if (translateMatch) {
-    x = parseFloat(translateMatch[1]) || 400;
-    y = parseFloat(translateMatch[2]) || 300;
-  }
+// Fragment spawning function - spawns at specific SVG coordinates
+function spawnFragmentAtPosition(x, y, container) {
+  if (!container) return;
 
   // Create multiple fragments per spawn
-  const fragmentCount = random(2, 5);
+  const fragmentCount = Math.floor(random(2, 5));
   const spring = createSpring({ stiffness: 300, damping: 15 });
 
   for (let i = 0; i < fragmentCount; i++) {
-    const isChip = random(0, 1) > 0.6;
+    const isChip = random(0, 1) > 0.5;
     const fragment = document.createElementNS('http://www.w3.org/2000/svg', isChip ? 'circle' : 'polygon');
+
+    // Add slight random offset from blade position
+    const offsetX = x + random(-10, 10);
+    const offsetY = y + random(-10, 10);
 
     if (isChip) {
       // Small circular chip
-      fragment.setAttribute('cx', x);
-      fragment.setAttribute('cy', y);
-      fragment.setAttribute('r', random(2, 5));
+      fragment.setAttribute('cx', offsetX);
+      fragment.setAttribute('cy', offsetY);
+      fragment.setAttribute('r', random(2, 6));
       fragment.classList.add('fragment', 'fragment-chip');
     } else {
       // Angular shard
-      const size = random(4, 10);
-      const points = `${x},${y - size} ${x + size * 0.6},${y + size * 0.5} ${x - size * 0.6},${y + size * 0.5}`;
+      const size = random(5, 12);
+      const points = `${offsetX},${offsetY - size} ${offsetX + size * 0.7},${offsetY + size * 0.6} ${offsetX - size * 0.7},${offsetY + size * 0.6}`;
       fragment.setAttribute('points', points);
       fragment.classList.add('fragment', 'fragment-shard');
     }
 
     // Start with gold flash
     fragment.style.fill = '#FFD700';
-    fragment.style.filter = 'drop-shadow(0 0 8px #FFD700)';
+    fragment.style.filter = 'drop-shadow(0 0 10px #FFD700)';
 
     container.appendChild(fragment);
 
-    // Animate the fragment bursting outward
+    // Animate the fragment bursting outward from the cut point
     const angle = random(0, Math.PI * 2);
-    const distance = random(30, 100);
+    const distance = random(40, 120);
     const targetX = Math.cos(angle) * distance;
     const targetY = Math.sin(angle) * distance;
 
@@ -319,19 +308,19 @@ function spawnFragment(blade, container) {
     // Flash gold then fade to cyan
     fragmentTL.add(fragment, {
       fill: ['#FFD700', '#00f0ff'],
-      filter: ['drop-shadow(0 0 8px #FFD700)', 'drop-shadow(0 0 4px #00f0ff)'],
-      duration: 150,
+      filter: ['drop-shadow(0 0 10px #FFD700)', 'drop-shadow(0 0 4px #00f0ff)'],
+      duration: 100,
     });
 
     // Burst outward and fade
     fragmentTL.add(fragment, {
       translateX: targetX,
       translateY: targetY,
-      rotate: random(-180, 180),
-      scale: [1, 0],
+      rotate: random(-270, 270),
+      scale: [1.2, 0],
       opacity: [1, 0],
-      duration: random(400, 800),
-    }, 50);
+      duration: random(500, 900),
+    }, 30);
   }
 }
 

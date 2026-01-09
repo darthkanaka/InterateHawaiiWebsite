@@ -212,8 +212,8 @@ nav {
    ============================================ */
 
 .hero {
-  min-height: 300vh;
-  min-height: 300dvh;
+  min-height: 180vh;
+  min-height: 180dvh;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
