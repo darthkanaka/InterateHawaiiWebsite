@@ -145,65 +145,14 @@
 
     .scroll-progress {
       margin-top: 2rem;
-      font-size: 1rem;
-      color: var(--text-muted);
-    }
-
-    /* Custom scroll timeline indicator */
-    .scroll-timeline {
-      position: fixed;
-      left: 30px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 4px;
-      height: 60vh;
-      background: rgba(255,255,255,0.1);
-      border-radius: 2px;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-      z-index: 100;
-    }
-
-    .scroll-timeline.visible {
-      opacity: 1;
-    }
-
-    .scroll-timeline-progress {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 0%;
-      background: linear-gradient(to top, var(--accent-2), var(--accent-3));
-      border-radius: 2px;
-      transition: height 0.1s ease-out;
-    }
-
-    .scroll-timeline-marker {
-      position: absolute;
-      left: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--accent);
-      white-space: nowrap;
-    }
-
-    .scroll-timeline-marker.start {
-      bottom: 0;
-      transform: translateY(50%);
-    }
-
-    .scroll-timeline-marker.end {
-      top: 0;
-      transform: translateY(-50%);
-    }
-
-    .scroll-timeline-marker.current {
-      bottom: 0;
-      transform: translateY(50%);
+      font-size: 1.25rem;
       color: var(--text);
-      font-size: 1rem;
-      left: 16px;
+      font-weight: 600;
+    }
+
+    .scroll-progress span {
+      color: var(--accent-2);
+      font-size: 2rem;
     }
 
     /* Snap point at end of scroll section */
@@ -290,19 +239,10 @@
       .spring-box { width: 90px; height: 90px; }
       .reveal-title { font-size: 2.5rem; }
       .reveal-subtitle { font-size: 1.1rem; }
-      .scroll-timeline { left: 15px; }
     }
   </style>
 </head>
 <body>
-
-  <!-- Custom scroll timeline indicator -->
-  <div class="scroll-timeline" id="scroll-timeline">
-    <div class="scroll-timeline-progress" id="scroll-timeline-progress"></div>
-    <span class="scroll-timeline-marker start">0%</span>
-    <span class="scroll-timeline-marker end">100%</span>
-    <span class="scroll-timeline-marker current" id="scroll-timeline-current">0%</span>
-  </div>
 
   <!-- 1. Staggered Grid Animation -->
   <section id="grid-section">
@@ -415,9 +355,6 @@
     const scrollSection = document.getElementById('scroll-section');
     const scrollCards = utils.$('.scroll-card');
     const scrollPercent = document.getElementById('scroll-percent');
-    const scrollTimeline = document.getElementById('scroll-timeline');
-    const scrollTimelineProgress = document.getElementById('scroll-timeline-progress');
-    const scrollTimelineCurrent = document.getElementById('scroll-timeline-current');
 
     // Scroll-synced animation following documentation patterns
     animate(scrollCards, {
@@ -433,18 +370,8 @@
         enter: 'bottom top',
         leave: 'top bottom',
         sync: true,
-        onEnter: () => {
-          scrollTimeline.classList.add('visible');
-        },
-        onLeave: () => {
-          scrollTimeline.classList.remove('visible');
-        },
         onUpdate: (self) => {
-          const progress = Math.round(self.progress * 100);
-          scrollPercent.textContent = progress;
-          scrollTimelineProgress.style.height = progress + '%';
-          scrollTimelineCurrent.textContent = progress + '%';
-          scrollTimelineCurrent.style.bottom = progress + '%';
+          scrollPercent.textContent = Math.round(self.progress * 100);
         }
       })
     });
