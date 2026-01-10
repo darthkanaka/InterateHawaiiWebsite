@@ -266,6 +266,17 @@
       left: 0;
       box-shadow: 0 0 20px var(--accent-2), 0 0 40px var(--accent-2);
       pointer-events: none;
+      z-index: 10;
+    }
+
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: var(--accent-2);
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
     }
 
     /* Responsive */
@@ -532,8 +543,74 @@
     // 5. SVG MOTION PATH ANIMATION
     // ============================================
     const motionDot = document.getElementById('motion-dot');
+    const motionContainer = document.querySelector('.motion-container');
+    let particles = [];
+    let particleInterval = null;
+
+    // Create a particle element
+    function createParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      motionContainer.appendChild(particle);
+      return particle;
+    }
+
+    // Spawn particle at random position and animate toward dot
+    function spawnParticle() {
+      const particle = createParticle();
+      particles.push(particle);
+
+      // Get current dot position
+      const dotRect = motionDot.getBoundingClientRect();
+      const containerRect = motionContainer.getBoundingClientRect();
+      const dotX = dotRect.left - containerRect.left + dotRect.width / 2;
+      const dotY = dotRect.top - containerRect.top + dotRect.height / 2;
+
+      // Random starting position around the container (outside edges)
+      const angle = utils.random(0, Math.PI * 2);
+      const distance = utils.random(150, 300);
+      const startX = dotX + Math.cos(angle) * distance;
+      const startY = dotY + Math.sin(angle) * distance;
+
+      // Set initial state: far away, blurry, large
+      utils.set(particle, {
+        left: startX + 'px',
+        top: startY + 'px',
+        opacity: 0,
+        scale: utils.random(2, 4),
+        filter: 'blur(8px)'
+      });
+
+      // Animate particle toward the dot: get sharp, scale down
+      animate(particle, {
+        left: dotX + 'px',
+        top: dotY + 'px',
+        opacity: [0, 0.8, 1, 0],
+        scale: [utils.random(2, 4), 1, 0.3],
+        filter: ['blur(8px)', 'blur(2px)', 'blur(0px)'],
+        duration: utils.random(600, 1000),
+        ease: 'inQuad',
+        onComplete: () => {
+          particle.remove();
+          particles = particles.filter(p => p !== particle);
+        }
+      });
+    }
+
+    // Clear all particles
+    function clearParticles() {
+      if (particleInterval) {
+        clearInterval(particleInterval);
+        particleInterval = null;
+      }
+      particles.forEach(p => p.remove());
+      particles = [];
+    }
 
     function animateMotionPath() {
+      // Clear any existing particles
+      clearParticles();
+
       // Create drawable proxy for the logo path
       const logoDrawable = svg.createDrawable('#hi-logo-path');
 
@@ -546,21 +623,34 @@
         defaults: { ease: 'linear' }
       });
 
-      // Draw HI logo with motion dot following the path
+      // Draw HI logo with playbackEase to vary speed at corners
       tl.add(logoDrawable, {
         draw: ['0 0', '0 1'],
-        duration: 4000
+        duration: 5000,
+        playbackEase: 'inOutSine'
       });
 
+      // Motion dot follows path with same easing
       tl.add(motionDot, {
         ...svg.createMotionPath('#hi-logo-path'),
-        duration: 4000
+        duration: 5000,
+        playbackEase: 'inOutSine'
       }, 0);
+
+      // Start spawning particles
+      particleInterval = setInterval(spawnParticle, 80);
+
+      // Stop particle spawning near end of animation
+      tl.call(() => {
+        clearInterval(particleInterval);
+        particleInterval = null;
+      }, 4600);
 
       // Fade out dot at the end
       tl.add(motionDot, {
         opacity: 0,
-        duration: 400,
+        scale: [1, 1.5, 0],
+        duration: 500,
         ease: 'outQuad'
       });
     }
