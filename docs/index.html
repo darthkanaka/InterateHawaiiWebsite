@@ -337,28 +337,24 @@
     const scrollCards = utils.$('.scroll-card');
     const scrollPercent = document.getElementById('scroll-percent');
 
-    // Animate each card with scroll sync
-    scrollCards.forEach((card, i) => {
-      animate(card, {
-        translateY: [100, 0],
-        translateX: [(i - 1) * 50, 0],
-        rotate: [15 - i * 10, 0],
-        opacity: [0, 1],
-        delay: i * 100,
-        duration: 1000,
-        ease: 'outQuad',
-        autoplay: onScroll({
-          target: scrollSection,
-          enter: 'top center',
-          leave: 'bottom top',
-          sync: true,
-          onUpdate: (self) => {
-            if (i === 0) {
-              scrollPercent.textContent = Math.round(self.progress * 100);
-            }
-          }
-        })
-      });
+    // Scroll-synced animation with eased sync mode (allows stagger)
+    animate(scrollCards, {
+      translateY: [100, 0],
+      translateX: (el, i) => [(i - 1) * 50, 0],
+      rotate: (el, i) => [15 - i * 10, 0],
+      opacity: [0, 1],
+      ease: 'linear',
+      delay: stagger(100),
+      autoplay: onScroll({
+        target: scrollSection,
+        enter: 'top center',
+        leave: 'bottom top',
+        sync: 'outQuad',
+        debug: true,
+        onUpdate: (self) => {
+          scrollPercent.textContent = Math.round(self.progress * 100);
+        }
+      })
     });
 
     // ============================================
