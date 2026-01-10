@@ -549,13 +549,16 @@
     let particleInterval = null;
     let isAnimating = false;
 
-    // Get dot position relative to container
+    // Get dot position relative to container using transform values
     function getDotPosition() {
-      const dotRect = motionDot.getBoundingClientRect();
-      const containerRect = motionContainer.getBoundingClientRect();
+      // Get the animated transform values directly
+      const translateX = utils.get(motionDot, 'translateX', false) || 0;
+      const translateY = utils.get(motionDot, 'translateY', false) || 0;
+
+      // Add the dot's base position (center of dot)
       return {
-        x: dotRect.left - containerRect.left + dotRect.width / 2,
-        y: dotRect.top - containerRect.top + dotRect.height / 2
+        x: parseFloat(translateX) + 8,  // 8 = half of 16px dot width
+        y: parseFloat(translateY) + 8
       };
     }
 
