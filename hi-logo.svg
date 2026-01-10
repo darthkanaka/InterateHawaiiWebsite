@@ -1,0 +1,30 @@
+<svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- HI Logo - Roman numeral II with HI in negative space -->
+  <!-- Outer frame with HI cutouts -->
+  <path d="
+    M 0,0
+    H 240
+    V 300
+    H 0
+    Z
+    M 45,0
+    V 125
+    H 95
+    V 0
+    Z
+    M 45,175
+    V 300
+    H 95
+    V 175
+    Z
+    M 140,0
+    V 300
+    H 160
+    V 0
+    Z
+  "
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  fill-rule="evenodd"/>
+</svg>
