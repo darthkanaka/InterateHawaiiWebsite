@@ -610,9 +610,10 @@
         particle.age += dt;
         const progress = Math.min(particle.age / particle.maxAge, 1);
 
-        // Damp position toward current dot position (follows the moving dot)
-        particle.x = utils.damp(particle.x, dotPos.x, dt, particle.dampAmount);
-        particle.y = utils.damp(particle.y, dotPos.y, dt, particle.dampAmount);
+        // Simple movement toward dot (not using damp for debugging)
+        // Move 10-20% closer to dot each frame
+        particle.x += (dotPos.x - particle.x) * particle.dampAmount;
+        particle.y += (dotPos.y - particle.y) * particle.dampAmount;
 
         // Blur decreases as particle gets closer (sharp when near)
         particle.blur = utils.lerp(8, 0, progress);
