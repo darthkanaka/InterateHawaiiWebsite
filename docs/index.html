@@ -545,8 +545,8 @@
     const motionDot = document.getElementById('motion-dot');
     const motionContainer = document.querySelector('.motion-container');
     let particles = [];
-    let isAnimating = false;
-    let lastSpawnTime = 0;
+    let spawnInterval = null;
+    let updateInterval = null;
 
     // Get current dot position
     function getDotPosition() {
@@ -558,7 +558,7 @@
       };
     }
 
-    // Spawn a particle
+    // Spawn a particle - animate it toward dot with continuous position updates
     function spawnParticle() {
       const el = document.createElement('div');
       el.className = 'particle';
@@ -570,6 +570,7 @@
       const startX = dotPos.x + Math.cos(angle) * distance;
       const startY = dotPos.y + Math.sin(angle) * distance;
 
+      // Store current position for tracking
       const particle = {
         el,
         x: startX,
@@ -578,59 +579,45 @@
         duration: utils.random(800, 1200)
       };
 
+      // Set initial position
       utils.set(el, {
         left: startX + 'px',
         top: startY + 'px',
-        opacity: 0.7,
+        opacity: 0,
         scale: 3,
         filter: 'blur(4px)'
+      });
+
+      // Animate visual properties (opacity, scale, blur) - these don't need tracking
+      animate(el, {
+        opacity: [0, 0.9, 0.9, 0],
+        scale: [3, 0.3],
+        filter: ['blur(4px)', 'blur(0px)'],
+        duration: particle.duration,
+        ease: 'linear'
       });
 
       particles.push(particle);
     }
 
-    // Update all particles - called via requestAnimationFrame
-    function updateParticles() {
-      if (!isAnimating) return;
-
+    // Update particle positions toward current dot position
+    function updatePositions() {
       const dotPos = getDotPosition();
       const now = Date.now();
 
-      // Spawn new particle every ~60ms
-      if (now - lastSpawnTime > 60) {
-        spawnParticle();
-        lastSpawnTime = now;
-      }
-
-      // Update each particle
       particles.forEach(particle => {
         const elapsed = now - particle.startTime;
         const progress = Math.min(elapsed / particle.duration, 1);
 
-        // Move toward dot - speed increases with progress
-        const speed = 0.05 + progress * 0.15;
+        // Lerp position toward current dot position
+        const speed = 0.06 + progress * 0.14;
         particle.x += (dotPos.x - particle.x) * speed;
         particle.y += (dotPos.y - particle.y) * speed;
 
-        // Visual properties
-        let opacity;
-        if (progress < 0.1) {
-          opacity = progress / 0.1 * 0.9;
-        } else if (progress > 0.8) {
-          opacity = (1 - progress) / 0.2 * 0.9;
-        } else {
-          opacity = 0.9;
-        }
-
-        const scale = utils.lerp(3, 0.3, progress);
-        const blur = utils.lerp(4, 0, progress);
-
+        // Update position only (visuals handled by animate())
         utils.set(particle.el, {
           left: particle.x + 'px',
-          top: particle.y + 'px',
-          opacity: opacity,
-          scale: scale,
-          filter: 'blur(' + blur + 'px)'
+          top: particle.y + 'px'
         });
       });
 
@@ -643,66 +630,72 @@
         }
         return true;
       });
-
-      requestAnimationFrame(updateParticles);
     }
 
     // Clear all particles
     function clearParticles() {
-      isAnimating = false;
+      if (spawnInterval) {
+        clearInterval(spawnInterval);
+        spawnInterval = null;
+      }
+      if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+      }
       particles.forEach(p => p.el.remove());
       particles = [];
     }
 
     function animateMotionPath() {
-      // Clear any existing particles
       clearParticles();
 
-      // Create drawable proxy for the logo path
       const logoDrawable = svg.createDrawable('#hi-logo-path');
 
-      // Reset - show path, reset draw state
       utils.set('#hi-logo-path', { opacity: 1 });
       utils.set(logoDrawable, { draw: '0 0' });
       utils.set(motionDot, { opacity: 1, scale: 1 });
-
-      // Start particle system
-      isAnimating = true;
-      lastSpawnTime = Date.now();
-      requestAnimationFrame(updateParticles);
 
       const tl = createTimeline({
         defaults: { ease: 'linear' }
       });
 
-      // Draw HI logo with playbackEase to vary speed at corners
+      // Draw HI logo
       tl.add(logoDrawable, {
         draw: ['0 0', '0 1'],
         duration: 5000,
         playbackEase: 'inOutSine'
       });
 
-      // Motion dot follows path with same easing
+      // Motion dot follows path
       tl.add(motionDot, {
         ...svg.createMotionPath('#hi-logo-path'),
         duration: 5000,
         playbackEase: 'inOutSine'
       }, 0);
 
-      // Stop spawning at 4500ms (but keep updating existing particles)
+      // Spawn particles every 60ms (this always worked)
+      spawnInterval = setInterval(spawnParticle, 60);
+
+      // Update positions every 16ms (~60fps) - this is the tracking fix
+      updateInterval = setInterval(updatePositions, 16);
+
+      // Stop spawning near end
       tl.call(() => {
-        lastSpawnTime = Infinity; // Prevent new spawns
+        clearInterval(spawnInterval);
+        spawnInterval = null;
       }, 4500);
 
-      // Fade out dot at the end
+      // Fade out dot
       tl.add(motionDot, {
         opacity: 0,
         scale: [1, 1.5, 0],
         duration: 500,
         ease: 'outQuad',
         onComplete: () => {
-          // Stop particle updates after a delay to let remaining particles finish
-          setTimeout(() => { isAnimating = false; }, 1500);
+          setTimeout(() => {
+            clearInterval(updateInterval);
+            updateInterval = null;
+          }, 1500);
         }
       });
     }
