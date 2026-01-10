@@ -214,13 +214,13 @@
     }
 
     /* ============================================
-       4. TAP TO EXPLODE ANIMATION
+       4. SVG FILTER GLITCH ANIMATION
        ============================================ */
-    #explode-section {
+    #glitch-section {
       background: linear-gradient(180deg, var(--dark) 0%, #0d0d14 100%);
     }
 
-    .explode-container {
+    .glitch-container {
       position: relative;
       width: 300px;
       height: 220px;
@@ -231,28 +231,17 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    .explode-logo {
-      position: absolute;
+    .glitch-logo {
       width: 100%;
       height: 100%;
+      filter: url(#glitch-filter);
     }
 
-    .explode-logo .logo-fill {
+    .glitch-logo .logo-fill {
       fill: var(--accent);
     }
 
-    .explode-fragment {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
-    .explode-fragment .logo-fill {
-      fill: var(--accent);
-    }
-
-    .explode-hint {
+    .glitch-hint {
       position: absolute;
       bottom: -40px;
       font-size: 0.85rem;
@@ -268,7 +257,7 @@
       .grid-item { width: 40px; height: 40px; }
       .scroll-card { width: 90px; height: 120px; font-size: 1.5rem; }
       .scroll-cards { gap: 12px; }
-      .explode-container { width: 250px; height: 180px; }
+      .glitch-container { width: 250px; height: 180px; }
     }
   </style>
 </head>
@@ -315,18 +304,24 @@
     <button class="replay-btn" id="replay-motion">Replay Animation</button>
   </section>
 
-  <!-- 4. Tap to Explode Animation -->
-  <section id="explode-section">
-    <h2>Tap to Explode</h2>
-    <p class="section-desc">Tap the logo to shatter it into pieces, then watch it magnetically reassemble with spring physics.</p>
-    <div class="explode-container" id="explode-container">
-      <!-- Main logo SVG - same path as motion section -->
-      <svg class="explode-logo" id="explode-logo" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+  <!-- 4. SVG Filter Glitch Animation -->
+  <section id="glitch-section">
+    <h2>SVG Filter Glitch</h2>
+    <p class="section-desc">Tap the logo to trigger animated SVG filters creating a liquid distortion effect.</p>
+    <div class="glitch-container" id="glitch-container">
+      <svg class="glitch-logo" id="glitch-logo" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+        <!-- SVG Filter Definition -->
+        <defs>
+          <filter id="glitch-filter" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence id="turbulence" type="fractalNoise" baseFrequency="0" numOctaves="2" result="noise" />
+            <feDisplacementMap id="displacement" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
         <g transform="translate(0,400) scale(0.1,-0.1)">
           <path class="logo-fill" d="M1640 3040 l0 -270 255 0 255 0 2 -337 3 -338 328 -3 327 -2 0 340 0 340 255 0 255 0 0 -755 0 -755 -255 0 -255 0 -2 328 -3 327 -325 0 -325 0 -3 -327 -2 -328 -255 0 -255 0 0 -270 0 -270 495 0 495 0 0 270 0 270 90 0 90 0 0 -270 0 -270 765 0 765 0 0 270 0 270 -255 0 -255 0 0 755 0 755 255 0 254 0 3 260 c2 143 2 265 0 270 -3 7 -271 10 -768 10 l-764 0 0 -270 0 -270 -90 0 -90 0 0 270 0 270 -495 0 -495 0 0 -270z"/>
         </g>
       </svg>
-      <span class="explode-hint" id="explode-hint">Tap to explode</span>
+      <span class="glitch-hint" id="glitch-hint">Tap to glitch</span>
     </div>
   </section>
 
@@ -583,36 +578,19 @@
     document.getElementById('replay-motion').addEventListener('click', animateMotionPath);
 
     // ============================================
-    // 4. TAP TO EXPLODE ANIMATION
+    // 4. SVG FILTER GLITCH ANIMATION
     // ============================================
-    const explodeLogo = document.getElementById('explode-logo');
-    const explodeContainer = document.getElementById('explode-container');
-    const explodeHint = document.getElementById('explode-hint');
+    const glitchContainer = document.getElementById('glitch-container');
+    const glitchLogo = document.getElementById('glitch-logo');
+    const glitchHint = document.getElementById('glitch-hint');
+    const turbulence = document.getElementById('turbulence');
+    const displacement = document.getElementById('displacement');
 
-    // Number of fragments to create
-    const NUM_FRAGMENTS = 12;
-    const fragments = [];
-    let isAnimating = false;
-    let isExploded = false;
-
-    // Create fragment clones of the logo
-    function createFragments() {
-      for (let i = 0; i < NUM_FRAGMENTS; i++) {
-        const fragment = explodeLogo.cloneNode(true);
-        fragment.classList.remove('explode-logo');
-        fragment.classList.add('explode-fragment');
-        fragment.removeAttribute('id');
-        fragment.style.opacity = '0';
-        explodeContainer.appendChild(fragment);
-        fragments.push(fragment);
-      }
-    }
-
-    createFragments();
+    let isGlitching = false;
 
     // Initial entrance animation
-    function initExplode() {
-      animate(explodeLogo, {
+    function initGlitch() {
+      animate(glitchLogo, {
         opacity: [0, 1],
         scale: [0.8, 1],
         duration: 600,
@@ -620,80 +598,99 @@
       });
     }
 
-    // Explode animation
-    function explode() {
-      if (isAnimating) return;
-      isAnimating = true;
-      isExploded = true;
+    // Glitch animation triggered on tap
+    function triggerGlitch() {
+      if (isGlitching) return;
+      isGlitching = true;
 
       // Hide hint
-      explodeHint.style.opacity = '0';
+      glitchHint.style.opacity = '0';
 
-      // Hide main logo
-      utils.set(explodeLogo, { opacity: 0 });
-
-      // Show and explode fragments
-      fragments.forEach((fragment, i) => {
-        utils.set(fragment, { opacity: 1, scale: 1, translateX: 0, translateY: 0, rotate: 0 });
-      });
-
-      animate(fragments, {
-        translateX: () => utils.random(-200, 200),
-        translateY: () => utils.random(-200, 200),
-        rotate: () => utils.random(-180, 180),
-        scale: () => utils.random(0.3, 0.7),
-        opacity: [1, 0.6],
-        delay: stagger(30, { from: 'center' }),
-        duration: 700,
-        ease: 'out(3)',
+      // Create timeline for coordinated glitch effect
+      const tl = createTimeline({
         onComplete: () => {
-          isAnimating = false;
+          isGlitching = false;
+          glitchHint.style.opacity = '1';
         }
       });
+
+      // Animate turbulence baseFrequency - creates the noise pattern
+      tl.add(turbulence, {
+        baseFrequency: [0, 0.04, 0.08, 0.02, 0],
+        duration: 800,
+        ease: 'inOutQuad'
+      }, 0);
+
+      // Animate displacement scale - controls distortion intensity
+      tl.add(displacement, {
+        scale: [0, 30, 50, 20, 0],
+        duration: 800,
+        ease: 'inOutQuad'
+      }, 0);
+
+      // Add a subtle scale bounce to the logo
+      tl.add(glitchLogo, {
+        scale: [1, 1.02, 0.98, 1],
+        duration: 800,
+        ease: spring({ stiffness: 200, damping: 15 })
+      }, 0);
     }
 
-    // Reassemble with magnetic spring physics
-    function reassemble() {
-      if (isAnimating) return;
-      isAnimating = true;
-      isExploded = false;
+    // More intense glitch on hold
+    function triggerIntenseGlitch() {
+      if (isGlitching) return;
+      isGlitching = true;
 
-      animate(fragments, {
-        translateX: 0,
-        translateY: 0,
-        rotate: 0,
-        scale: 1,
-        opacity: [0.6, 1, 0],
-        delay: stagger(40, { from: 'edges' }),
-        ease: spring({ stiffness: 120, damping: 14 }),
+      glitchHint.style.opacity = '0';
+
+      const tl = createTimeline({
         onComplete: () => {
-          // Show main logo, hide fragments
-          utils.set(explodeLogo, { opacity: 1 });
-          fragments.forEach(f => utils.set(f, { opacity: 0 }));
-          isAnimating = false;
-          explodeHint.textContent = 'Tap to explode';
-          explodeHint.style.opacity = '1';
+          isGlitching = false;
+          glitchHint.style.opacity = '1';
         }
       });
+
+      // More intense turbulence animation
+      tl.add(turbulence, {
+        baseFrequency: [0, 0.02, 0.06, 0.1, 0.06, 0.02, 0],
+        duration: 1200,
+        ease: 'linear'
+      }, 0);
+
+      // More intense displacement
+      tl.add(displacement, {
+        scale: [0, 20, 60, 80, 40, 10, 0],
+        duration: 1200,
+        ease: 'linear'
+      }, 0);
+
+      // Logo shake effect
+      tl.add(glitchLogo, {
+        translateX: [0, -5, 5, -3, 3, 0],
+        translateY: [0, 3, -3, 2, -2, 0],
+        scale: [1, 1.03, 0.97, 1.01, 0.99, 1],
+        duration: 1200,
+        ease: 'linear'
+      }, 0);
     }
 
-    // Toggle on tap/click
-    explodeContainer.addEventListener('click', () => {
-      if (isExploded) {
-        reassemble();
-      } else {
-        explode();
-        // Auto-reassemble after delay
-        setTimeout(() => {
-          if (isExploded && !isAnimating) {
-            reassemble();
-          }
-        }, 1500);
+    // Tap/click handler
+    glitchContainer.addEventListener('click', triggerGlitch);
+
+    // Double-tap for intense glitch
+    let lastTap = 0;
+    glitchContainer.addEventListener('touchend', (e) => {
+      const currentTime = Date.now();
+      const tapLength = currentTime - lastTap;
+      if (tapLength < 300 && tapLength > 0) {
+        e.preventDefault();
+        triggerIntenseGlitch();
       }
+      lastTap = currentTime;
     });
 
     // Initialize with delay
-    setTimeout(initExplode, 300);
+    setTimeout(initGlitch, 400);
   </script>
 
 </body>
