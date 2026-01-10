@@ -567,17 +567,19 @@
       const dotPos = getDotPosition();
       const angle = utils.random(0, Math.PI * 2);
       const distance = utils.random(150, 300);
+      const initialScale = utils.random(2.5, 4);
 
       return {
         el,
         x: dotPos.x + Math.cos(angle) * distance,
         y: dotPos.y + Math.sin(angle) * distance,
-        scale: utils.random(2.5, 4),
+        initialScale: initialScale,
+        scale: initialScale,
         blur: 8,
         opacity: 0,
         age: 0,
         maxAge: utils.random(800, 1200),
-        dampAmount: utils.random(0.08, 0.15)
+        dampAmount: utils.random(0.15, 0.25)
       };
     }
 
@@ -599,26 +601,23 @@
 
     // Update all particles - called each frame via onUpdate
     function updateParticles(deltaTime) {
+      // Fallback if deltaTime is 0 or undefined
+      const dt = deltaTime || 16;
       const dotPos = getDotPosition();
 
       particles.forEach(particle => {
-        particle.age += deltaTime;
+        particle.age += dt;
         const progress = Math.min(particle.age / particle.maxAge, 1);
 
         // Damp position toward current dot position (follows the moving dot)
-        particle.x = utils.damp(particle.x, dotPos.x, deltaTime, particle.dampAmount);
-        particle.y = utils.damp(particle.y, dotPos.y, deltaTime, particle.dampAmount);
-
-        // Calculate distance to dot for additional effects
-        const dx = dotPos.x - particle.x;
-        const dy = dotPos.y - particle.y;
-        const distanceToDot = Math.sqrt(dx * dx + dy * dy);
+        particle.x = utils.damp(particle.x, dotPos.x, dt, particle.dampAmount);
+        particle.y = utils.damp(particle.y, dotPos.y, dt, particle.dampAmount);
 
         // Blur decreases as particle gets closer (sharp when near)
         particle.blur = utils.lerp(8, 0, progress);
 
-        // Scale decreases as particle approaches
-        particle.scale = utils.lerp(particle.scale, 0.2, progress * progress);
+        // Scale decreases from initial scale as particle approaches
+        particle.scale = utils.lerp(particle.initialScale, 0.2, progress);
 
         // Opacity: fade in, stay visible, fade out at end
         if (progress < 0.1) {
