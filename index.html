@@ -59,7 +59,7 @@
       font-size: 1.1rem;
       margin-bottom: 3rem;
       text-align: center;
-      max-width: 600px;
+      max-width: min(600px, calc(100vw - 40px));
     }
 
     /* ============================================
@@ -67,7 +67,8 @@
        ============================================ */
     #grid-section {
       background: linear-gradient(180deg, var(--dark) 0%, #0f0f18 100%);
-      overflow-x: hidden;
+      overflow: hidden;
+      max-width: 100vw;
     }
 
     .grid-container {
