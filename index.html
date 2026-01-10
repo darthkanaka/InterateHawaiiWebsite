@@ -208,7 +208,7 @@
        4. TEXT REVEAL ANIMATION
        ============================================ */
     #text-section {
-      background: linear-gradient(180deg, #0d0d16 0%, var(--dark) 100%);
+      background: linear-gradient(180deg, #0d0d16 0%, #0a0a12 100%);
     }
 
     .text-reveal-container {
@@ -228,6 +228,44 @@
       font-size: 1.5rem;
       color: var(--text-muted);
       line-height: 1.6;
+    }
+
+    /* ============================================
+       5. SVG MOTION PATH ANIMATION
+       ============================================ */
+    #motion-section {
+      background: linear-gradient(180deg, #0a0a12 0%, var(--dark) 100%);
+    }
+
+    .motion-container {
+      position: relative;
+      width: 350px;
+      height: 380px;
+    }
+
+    .motion-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .motion-svg .logo-path {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .motion-dot {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: var(--accent-2);
+      border-radius: 50%;
+      top: 0;
+      left: 0;
+      box-shadow: 0 0 20px var(--accent-2), 0 0 40px var(--accent-2);
+      pointer-events: none;
     }
 
     /* Responsive */
@@ -298,6 +336,42 @@
     <button class="replay-btn" id="replay-text">Replay Animation</button>
   </section>
 
+  <!-- 5. SVG Motion Path Animation -->
+  <section id="motion-section">
+    <h2>SVG Motion Path</h2>
+    <p class="section-desc">Line drawing with createDrawable and element following path with createMotionPath.</p>
+    <div class="motion-container">
+      <svg class="motion-svg" viewBox="-20 -20 320 340">
+        <!-- H path -->
+        <path id="h-path" class="logo-path" d="
+          M 0,0
+          L 45,0
+          L 45,125
+          L 95,125
+          L 95,0
+          L 140,0
+          L 140,300
+          L 95,300
+          L 95,175
+          L 45,175
+          L 45,300
+          L 0,300
+          Z
+        "/>
+        <!-- I path -->
+        <path id="i-path" class="logo-path" d="
+          M 180,0
+          L 280,0
+          L 280,300
+          L 180,300
+          Z
+        "/>
+      </svg>
+      <div class="motion-dot" id="motion-dot"></div>
+    </div>
+    <button class="replay-btn" id="replay-motion">Replay Animation</button>
+  </section>
+
   <script type="module">
     import {
       animate,
@@ -306,7 +380,8 @@
       spring,
       splitText,
       utils,
-      createTimeline
+      createTimeline,
+      svg
     } from 'https://esm.sh/animejs';
 
     // ============================================
@@ -472,6 +547,69 @@
 
     // Replay button
     document.getElementById('replay-text').addEventListener('click', animateTextReveal);
+
+    // ============================================
+    // 5. SVG MOTION PATH ANIMATION
+    // ============================================
+    const hPath = document.getElementById('h-path');
+    const iPath = document.getElementById('i-path');
+    const motionDot = document.getElementById('motion-dot');
+
+    function animateMotionPath() {
+      // Create drawable proxies for line drawing
+      const hDrawable = svg.createDrawable('#h-path');
+      const iDrawable = svg.createDrawable('#i-path');
+
+      // Reset paths to hidden
+      utils.set(hDrawable, { draw: '0 0' });
+      utils.set(iDrawable, { draw: '0 0' });
+      utils.set(motionDot, { opacity: 1 });
+
+      // Create timeline for sequenced animations
+      const tl = createTimeline({
+        defaults: { ease: 'inOutQuad' }
+      });
+
+      // Draw H path
+      tl.add(hDrawable, {
+        draw: ['0 0', '0 1'],
+        duration: 1500,
+        ease: 'linear'
+      });
+
+      // Motion dot follows H path
+      tl.add(motionDot, {
+        ...svg.createMotionPath('#h-path'),
+        duration: 1500,
+        ease: 'linear'
+      }, 0); // Start at same time as H drawing
+
+      // Draw I path
+      tl.add(iDrawable, {
+        draw: ['0 0', '0 1'],
+        duration: 800,
+        ease: 'linear'
+      });
+
+      // Motion dot follows I path
+      tl.add(motionDot, {
+        ...svg.createMotionPath('#i-path'),
+        duration: 800,
+        ease: 'linear'
+      }, '-=800'); // Start at same time as I drawing
+
+      // Fade out dot at end
+      tl.add(motionDot, {
+        opacity: 0,
+        duration: 300
+      });
+    }
+
+    // Initial animation with delay
+    setTimeout(animateMotionPath, 500);
+
+    // Replay button
+    document.getElementById('replay-motion').addEventListener('click', animateMotionPath);
   </script>
 
 </body>
