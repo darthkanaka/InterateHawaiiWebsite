@@ -337,28 +337,24 @@
     const scrollCards = utils.$('.scroll-card');
     const scrollPercent = document.getElementById('scroll-percent');
 
-    // Use a timeline for staggered scroll-synced animation
-    const scrollTl = createTimeline({
-      autoplay: onScroll({
-        target: scrollSection,
-        enter: 'top bottom',
-        leave: 'bottom top',
-        sync: true,
-        onUpdate: (self) => {
-          scrollPercent.textContent = Math.round(self.progress * 100);
-        }
-      })
-    });
-
-    // Add each card to the timeline with staggered positions
-    scrollTl.add(scrollCards, {
+    // Scroll-synced animation with eased sync mode (allows stagger)
+    animate(scrollCards, {
       translateY: [100, 0],
       translateX: (el, i) => [(i - 1) * 50, 0],
       rotate: (el, i) => [15 - i * 10, 0],
       opacity: [0, 1],
-      duration: 500,
-      ease: 'outQuad',
-      delay: stagger(150)
+      ease: 'linear',
+      delay: stagger(100),
+      autoplay: onScroll({
+        target: scrollSection,
+        enter: 'top center',
+        leave: 'bottom top',
+        sync: 'outQuad',
+        debug: true,
+        onUpdate: (self) => {
+          scrollPercent.textContent = Math.round(self.progress * 100);
+        }
+      })
     });
 
     // ============================================
