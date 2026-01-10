@@ -261,6 +261,43 @@
       transition: opacity 0.3s ease;
     }
 
+    /* ============================================
+       5. SVG FILTER GLITCH ANIMATION
+       ============================================ */
+    #glitch-section {
+      background: linear-gradient(180deg, #0d0d14 0%, #0a0a0f 100%);
+    }
+
+    .glitch-container {
+      position: relative;
+      width: 300px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .glitch-logo {
+      width: 100%;
+      height: 100%;
+      filter: url(#glitch-filter);
+    }
+
+    .glitch-logo .logo-fill {
+      fill: var(--accent-2);
+    }
+
+    .glitch-hint {
+      position: absolute;
+      bottom: -40px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       h2 { font-size: 1.8rem; }
@@ -269,6 +306,7 @@
       .scroll-card { width: 90px; height: 120px; font-size: 1.5rem; }
       .scroll-cards { gap: 12px; }
       .explode-container { width: 250px; height: 180px; }
+      .glitch-container { width: 250px; height: 180px; }
     }
   </style>
 </head>
@@ -327,6 +365,27 @@
         </g>
       </svg>
       <span class="explode-hint" id="explode-hint">Tap to explode</span>
+    </div>
+  </section>
+
+  <!-- 5. SVG Filter Glitch Animation -->
+  <section id="glitch-section">
+    <h2>SVG Filter Glitch</h2>
+    <p class="section-desc">Tap the logo to trigger animated SVG filters creating a liquid distortion effect.</p>
+    <div class="glitch-container" id="glitch-container">
+      <svg class="glitch-logo" id="glitch-logo" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+        <!-- SVG Filter Definition -->
+        <defs>
+          <filter id="glitch-filter" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence id="turbulence" type="fractalNoise" baseFrequency="0" numOctaves="2" result="noise" />
+            <feDisplacementMap id="displacement" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+        <g transform="translate(0,400) scale(0.1,-0.1)">
+          <path class="logo-fill" d="M1640 3040 l0 -270 255 0 255 0 2 -337 3 -338 328 -3 327 -2 0 340 0 340 255 0 255 0 0 -755 0 -755 -255 0 -255 0 -2 328 -3 327 -325 0 -325 0 -3 -327 -2 -328 -255 0 -255 0 0 -270 0 -270 495 0 495 0 0 270 0 270 90 0 90 0 0 -270 0 -270 765 0 765 0 0 270 0 270 -255 0 -255 0 0 755 0 755 255 0 254 0 3 260 c2 143 2 265 0 270 -3 7 -271 10 -768 10 l-764 0 0 -270 0 -270 -90 0 -90 0 0 270 0 270 -495 0 -495 0 0 -270z"/>
+        </g>
+      </svg>
+      <span class="glitch-hint" id="glitch-hint">Tap to glitch</span>
     </div>
   </section>
 
@@ -694,6 +753,121 @@
 
     // Initialize with delay
     setTimeout(initExplode, 300);
+
+    // ============================================
+    // 5. SVG FILTER GLITCH ANIMATION
+    // ============================================
+    const glitchContainer = document.getElementById('glitch-container');
+    const glitchLogo = document.getElementById('glitch-logo');
+    const glitchHint = document.getElementById('glitch-hint');
+    const turbulence = document.getElementById('turbulence');
+    const displacement = document.getElementById('displacement');
+
+    let isGlitching = false;
+
+    // Initial entrance animation
+    function initGlitch() {
+      animate(glitchLogo, {
+        opacity: [0, 1],
+        scale: [0.8, 1],
+        duration: 600,
+        ease: 'outQuad'
+      });
+    }
+
+    // Glitch animation triggered on tap
+    function triggerGlitch() {
+      if (isGlitching) return;
+      isGlitching = true;
+
+      // Hide hint
+      glitchHint.style.opacity = '0';
+
+      // Create timeline for coordinated glitch effect
+      const tl = createTimeline({
+        onComplete: () => {
+          isGlitching = false;
+          glitchHint.style.opacity = '1';
+        }
+      });
+
+      // Animate turbulence baseFrequency - creates the noise pattern
+      tl.add(turbulence, {
+        baseFrequency: [0, 0.04, 0.08, 0.02, 0],
+        duration: 800,
+        ease: 'inOutQuad'
+      }, 0);
+
+      // Animate displacement scale - controls distortion intensity
+      tl.add(displacement, {
+        scale: [0, 30, 50, 20, 0],
+        duration: 800,
+        ease: 'inOutQuad'
+      }, 0);
+
+      // Add a subtle scale bounce to the logo
+      tl.add(glitchLogo, {
+        scale: [1, 1.02, 0.98, 1],
+        duration: 800,
+        ease: spring({ stiffness: 200, damping: 15 })
+      }, 0);
+    }
+
+    // More intense glitch on hold
+    function triggerIntenseGlitch() {
+      if (isGlitching) return;
+      isGlitching = true;
+
+      glitchHint.style.opacity = '0';
+
+      const tl = createTimeline({
+        onComplete: () => {
+          isGlitching = false;
+          glitchHint.style.opacity = '1';
+        }
+      });
+
+      // More intense turbulence animation
+      tl.add(turbulence, {
+        baseFrequency: [0, 0.02, 0.06, 0.1, 0.06, 0.02, 0],
+        duration: 1200,
+        ease: 'linear'
+      }, 0);
+
+      // More intense displacement
+      tl.add(displacement, {
+        scale: [0, 20, 60, 80, 40, 10, 0],
+        duration: 1200,
+        ease: 'linear'
+      }, 0);
+
+      // Logo shake effect
+      tl.add(glitchLogo, {
+        translateX: [0, -5, 5, -3, 3, 0],
+        translateY: [0, 3, -3, 2, -2, 0],
+        scale: [1, 1.03, 0.97, 1.01, 0.99, 1],
+        duration: 1200,
+        ease: 'linear'
+      }, 0);
+    }
+
+    // Tap/click handler
+    glitchContainer.addEventListener('click', triggerGlitch);
+
+    // Double-tap for intense glitch
+    let lastTap = 0;
+    glitchContainer.addEventListener('touchend', (e) => {
+      const currentTime = Date.now();
+      const tapLength = currentTime - lastTap;
+      if (tapLength < 300 && tapLength > 0) {
+        e.preventDefault();
+        triggerIntenseGlitch();
+      }
+      lastTap = currentTime;
+    });
+
+    // Initialize with delay
+    setTimeout(initGlitch, 400);
   </script>
 
 </body>
