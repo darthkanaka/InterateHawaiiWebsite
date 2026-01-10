@@ -372,6 +372,7 @@
       splitText,
       utils,
       createTimeline,
+      createAnimatable,
       svg
     } from 'https://esm.sh/animejs';
 
@@ -548,7 +549,7 @@
     let particleSpawnInterval = null;
     let particleUpdateInterval = null;
 
-    // Get current dot position (this worked at spawn time originally)
+    // Get current dot position
     function getDotPosition() {
       const dotRect = motionDot.getBoundingClientRect();
       const containerRect = motionContainer.getBoundingClientRect();
@@ -558,11 +559,11 @@
       };
     }
 
-    // Spawn a particle - original working method
+    // Spawn a particle using createAnimatable for position tracking
     function spawnParticle() {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      motionContainer.appendChild(particle);
+      const el = document.createElement('div');
+      el.className = 'particle';
+      motionContainer.appendChild(el);
 
       // Get dot position at spawn time
       const dotPos = getDotPosition();
@@ -573,32 +574,28 @@
       const startX = dotPos.x + Math.cos(angle) * distance;
       const startY = dotPos.y + Math.sin(angle) * distance;
 
-      // Store position data on the element
-      particle.posX = startX;
-      particle.posY = startY;
-      particle.speed = utils.random(0.08, 0.15);
-
-      // Set initial position using transforms
-      utils.set(particle, {
-        translateX: startX,
-        translateY: startY,
-        opacity: 0,
-        scale: utils.random(2, 4),
-        filter: 'blur(8px)'
+      // Set initial position
+      utils.set(el, {
+        left: startX + 'px',
+        top: startY + 'px'
       });
 
-      // Animate visual properties (opacity, scale, blur) - this part worked
-      animate(particle, {
-        opacity: [0, 0.8, 1, 0],
-        scale: [utils.random(2, 4), 1, 0.3],
-        filter: ['blur(8px)', 'blur(2px)', 'blur(0px)'],
-        duration: utils.random(600, 1000),
-        ease: 'inQuad',
-        onComplete: () => {
-          particle.remove();
-          particles = particles.filter(p => p !== particle);
-        }
+      // Create animatable for this particle's position - this allows continuous target updates
+      const animatable = createAnimatable(el, {
+        left: { duration: 100, ease: 'out(2)' },
+        top: { duration: 100, ease: 'out(2)' },
+        opacity: { duration: 200 },
+        scale: { duration: 200 },
+        filter: { duration: 200 }
       });
+
+      // Store particle data
+      const particle = {
+        el,
+        animatable,
+        startTime: Date.now(),
+        duration: utils.random(800, 1200)
+      };
 
       particles.push(particle);
     }
@@ -606,17 +603,41 @@
     // Update particle positions toward current dot position
     function updateParticlePositions() {
       const dotPos = getDotPosition();
+      const now = Date.now();
 
       particles.forEach(particle => {
-        // Move toward current dot position
-        particle.posX += (dotPos.x - particle.posX) * particle.speed;
-        particle.posY += (dotPos.y - particle.posY) * particle.speed;
+        const elapsed = now - particle.startTime;
+        const progress = Math.min(elapsed / particle.duration, 1);
 
-        // Apply position update using translateX/Y transforms
-        utils.set(particle, {
-          translateX: particle.posX,
-          translateY: particle.posY
-        });
+        // Update position target - animatable will smoothly animate to it
+        particle.animatable.left(dotPos.x);
+        particle.animatable.top(dotPos.y);
+
+        // Update visual properties based on progress
+        // Opacity: fade in, hold, fade out
+        let opacity;
+        if (progress < 0.1) {
+          opacity = progress / 0.1 * 0.9;
+        } else if (progress > 0.8) {
+          opacity = (1 - progress) / 0.2 * 0.9;
+        } else {
+          opacity = 0.9;
+        }
+        particle.animatable.opacity(opacity);
+
+        // Scale: large to small
+        const scale = utils.lerp(3, 0.3, progress);
+        particle.animatable.scale(scale);
+      });
+
+      // Remove completed particles
+      particles = particles.filter(p => {
+        const elapsed = now - p.startTime;
+        if (elapsed >= p.duration) {
+          p.el.remove();
+          return false;
+        }
+        return true;
       });
     }
 
@@ -630,7 +651,7 @@
         clearInterval(particleUpdateInterval);
         particleUpdateInterval = null;
       }
-      particles.forEach(p => p.remove());
+      particles.forEach(p => p.el.remove());
       particles = [];
     }
 
