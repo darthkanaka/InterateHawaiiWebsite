@@ -239,8 +239,8 @@
 
     .motion-container {
       position: relative;
-      width: 350px;
-      height: 380px;
+      width: 450px;
+      height: 300px;
     }
 
     .motion-svg {
@@ -251,15 +251,9 @@
     .motion-svg .logo-path {
       fill: none;
       stroke: var(--accent);
-      stroke-width: 3;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .motion-svg #logo-frame {
-      fill: none;
-      stroke: var(--accent);
-      stroke-width: 3;
+      stroke-width: 80;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
     }
 
     .motion-dot {
@@ -347,32 +341,11 @@
     <h2>SVG Motion Path</h2>
     <p class="section-desc">Line drawing with createDrawable and element following path with createMotionPath.</p>
     <div class="motion-container">
-      <svg class="motion-svg" viewBox="-10 -10 300 320">
-        <!-- H letter outline - continuous path tracing the H shape -->
-        <path id="h-path" class="logo-path" d="
-          M 0,0
-          L 45,0
-          L 45,125
-          L 95,125
-          L 95,0
-          L 140,0
-          L 140,300
-          L 95,300
-          L 95,175
-          L 45,175
-          L 45,300
-          L 0,300
-          Z
-        " opacity="0"/>
-
-        <!-- I letter outline - simple rectangle -->
-        <path id="i-path" class="logo-path" d="
-          M 180,0
-          L 280,0
-          L 280,300
-          L 180,300
-          Z
-        " opacity="0"/>
+      <svg class="motion-svg" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0,400) scale(0.1,-0.1)">
+          <!-- HI Logo - Roman numeral II with HI negative space -->
+          <path id="hi-logo-path" class="logo-path" d="M1640 3040 l0 -270 255 0 255 0 2 -337 3 -338 328 -3 327 -2 0 340 0 340 255 0 255 0 0 -755 0 -755 -255 0 -255 0 -2 328 -3 327 -325 0 -325 0 -3 -327 -2 -328 -255 0 -255 0 0 -270 0 -270 495 0 495 0 0 270 0 270 90 0 90 0 0 -270 0 -270 765 0 765 0 0 270 0 270 -255 0 -255 0 0 755 0 755 255 0 254 0 3 260 c2 143 2 265 0 270 -3 7 -271 10 -768 10 l-764 0 0 -270 0 -270 -90 0 -90 0 0 270 0 270 -495 0 -495 0 0 -270z" opacity="0"/>
+        </g>
       </svg>
       <div class="motion-dot" id="motion-dot"></div>
     </div>
@@ -558,50 +531,31 @@
     // ============================================
     // 5. SVG MOTION PATH ANIMATION
     // ============================================
-    const hPath = document.getElementById('h-path');
-    const iPath = document.getElementById('i-path');
     const motionDot = document.getElementById('motion-dot');
 
     function animateMotionPath() {
-      // Create drawable proxies for the letter paths
-      const hDrawable = svg.createDrawable('#h-path');
-      const iDrawable = svg.createDrawable('#i-path');
+      // Create drawable proxy for the logo path
+      const logoDrawable = svg.createDrawable('#hi-logo-path');
 
-      // Reset - show paths, reset draw state
-      utils.set('#h-path', { opacity: 1 });
-      utils.set('#i-path', { opacity: 1 });
-      utils.set(hDrawable, { draw: '0 0' });
-      utils.set(iDrawable, { draw: '0 0' });
+      // Reset - show path, reset draw state
+      utils.set('#hi-logo-path', { opacity: 1 });
+      utils.set(logoDrawable, { draw: '0 0' });
       utils.set(motionDot, { opacity: 1 });
 
       const tl = createTimeline({
         defaults: { ease: 'linear' }
       });
 
-      // Draw H letter with motion dot following
-      tl.add(hDrawable, {
+      // Draw HI logo with motion dot following the path
+      tl.add(logoDrawable, {
         draw: ['0 0', '0 1'],
-        duration: 1500
+        duration: 4000
       });
 
       tl.add(motionDot, {
-        ...svg.createMotionPath('#h-path'),
-        duration: 1500
+        ...svg.createMotionPath('#hi-logo-path'),
+        duration: 4000
       }, 0);
-
-      // Small pause between letters
-      tl.add({}, { duration: 200 });
-
-      // Draw I letter with motion dot following
-      tl.add(iDrawable, {
-        draw: ['0 0', '0 1'],
-        duration: 800
-      });
-
-      tl.add(motionDot, {
-        ...svg.createMotionPath('#i-path'),
-        duration: 800
-      }, '-=800');
 
       // Fade out dot at the end
       tl.add(motionDot, {
