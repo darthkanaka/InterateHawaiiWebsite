@@ -213,6 +213,54 @@
       opacity: 0;
     }
 
+    /* ============================================
+       4. TAP TO EXPLODE ANIMATION
+       ============================================ */
+    #explode-section {
+      background: linear-gradient(180deg, var(--dark) 0%, #0d0d14 100%);
+    }
+
+    .explode-container {
+      position: relative;
+      width: 280px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .explode-grid {
+      display: grid;
+      grid-template-columns: repeat(14, 1fr);
+      grid-template-rows: repeat(10, 1fr);
+      width: 100%;
+      height: 100%;
+      gap: 2px;
+    }
+
+    .explode-piece {
+      background: var(--accent);
+      border-radius: 2px;
+      opacity: 0;
+      transform: scale(0);
+    }
+
+    .explode-piece.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .explode-hint {
+      position: absolute;
+      bottom: -40px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       h2 { font-size: 1.8rem; }
@@ -220,6 +268,7 @@
       .grid-item { width: 40px; height: 40px; }
       .scroll-card { width: 90px; height: 120px; font-size: 1.5rem; }
       .scroll-cards { gap: 12px; }
+      .explode-container { width: 240px; height: 170px; }
     }
   </style>
 </head>
@@ -266,6 +315,16 @@
     <button class="replay-btn" id="replay-motion">Replay Animation</button>
   </section>
 
+  <!-- 4. Tap to Explode Animation -->
+  <section id="explode-section">
+    <h2>Tap to Explode</h2>
+    <p class="section-desc">Tap the logo to shatter it into pieces, then watch it magnetically reassemble with spring physics.</p>
+    <div class="explode-container" id="explode-container">
+      <div class="explode-grid" id="explode-grid"></div>
+      <span class="explode-hint" id="explode-hint">Tap to explode</span>
+    </div>
+  </section>
+
   <script type="module">
     import {
       animate,
@@ -273,7 +332,8 @@
       onScroll,
       utils,
       createTimeline,
-      svg
+      svg,
+      spring
     } from 'https://esm.sh/animejs';
 
     // ============================================
@@ -516,6 +576,149 @@
 
     // Replay button
     document.getElementById('replay-motion').addEventListener('click', animateMotionPath);
+
+    // ============================================
+    // 4. TAP TO EXPLODE ANIMATION
+    // ============================================
+    const explodeGrid = document.getElementById('explode-grid');
+    const explodeContainer = document.getElementById('explode-container');
+    const explodeHint = document.getElementById('explode-hint');
+    const EXPLODE_COLS = 14;
+    const EXPLODE_ROWS = 10;
+
+    // HI logo shape as a bitmap (1 = filled, 0 = empty)
+    // 14 cols x 10 rows
+    const HI_SHAPE = [
+      [1,1,0,0,0,0,0,0,0,0,0,1,1,1],
+      [1,1,0,0,0,0,0,0,0,0,0,1,1,1],
+      [1,1,0,0,0,0,0,0,0,0,0,1,1,1],
+      [1,1,1,1,1,1,1,1,0,0,0,1,1,1],
+      [1,1,1,1,1,1,1,1,0,0,0,1,1,1],
+      [1,1,1,1,1,1,1,1,0,0,0,1,1,1],
+      [1,1,0,0,0,0,0,0,0,0,0,1,1,1],
+      [1,1,0,0,0,0,0,0,0,0,0,1,1,1],
+      [1,1,0,0,0,0,0,0,0,0,0,1,1,1],
+      [1,1,0,0,0,0,0,0,0,0,0,1,1,1],
+    ];
+
+    // Generate grid pieces
+    const pieces = [];
+    for (let row = 0; row < EXPLODE_ROWS; row++) {
+      for (let col = 0; col < EXPLODE_COLS; col++) {
+        const piece = document.createElement('div');
+        piece.className = 'explode-piece';
+        if (HI_SHAPE[row][col] === 1) {
+          piece.classList.add('active');
+        }
+        explodeGrid.appendChild(piece);
+        pieces.push({
+          el: piece,
+          row,
+          col,
+          isActive: HI_SHAPE[row][col] === 1
+        });
+      }
+    }
+
+    const activePieces = pieces.filter(p => p.isActive).map(p => p.el);
+    let isAnimating = false;
+    let isExploded = false;
+
+    // Initial entrance animation
+    function initExplode() {
+      animate(activePieces, {
+        opacity: [0, 1],
+        scale: [0, 1],
+        delay: stagger(20, {
+          grid: [EXPLODE_COLS, EXPLODE_ROWS],
+          from: 'center'
+        }),
+        duration: 400,
+        ease: 'outQuad'
+      });
+    }
+
+    // Explode animation
+    function explode() {
+      if (isAnimating) return;
+      isAnimating = true;
+      isExploded = true;
+
+      // Hide hint
+      explodeHint.style.opacity = '0';
+
+      // Get center of grid for explosion origin
+      const centerX = EXPLODE_COLS / 2;
+      const centerY = EXPLODE_ROWS / 2;
+
+      animate(activePieces, {
+        translateX: (el, i) => {
+          const piece = pieces.find(p => p.el === el);
+          const dx = piece.col - centerX;
+          return dx * utils.random(30, 60) + utils.random(-20, 20);
+        },
+        translateY: (el, i) => {
+          const piece = pieces.find(p => p.el === el);
+          const dy = piece.row - centerY;
+          return dy * utils.random(30, 60) + utils.random(-20, 20);
+        },
+        rotate: () => utils.random(-180, 180),
+        scale: [1, utils.random(0.5, 0.8)],
+        opacity: [1, 0.7],
+        delay: stagger(15, {
+          grid: [EXPLODE_COLS, EXPLODE_ROWS],
+          from: 'center'
+        }),
+        duration: 600,
+        ease: 'out(3)',
+        onComplete: () => {
+          isAnimating = false;
+        }
+      });
+    }
+
+    // Reassemble with magnetic spring physics
+    function reassemble() {
+      if (isAnimating) return;
+      isAnimating = true;
+      isExploded = false;
+
+      animate(activePieces, {
+        translateX: 0,
+        translateY: 0,
+        rotate: 0,
+        scale: 1,
+        opacity: 1,
+        delay: stagger(25, {
+          grid: [EXPLODE_COLS, EXPLODE_ROWS],
+          from: 'edges'
+        }),
+        ease: spring({ stiffness: 150, damping: 12 }),
+        onComplete: () => {
+          isAnimating = false;
+          explodeHint.textContent = 'Tap to explode';
+          explodeHint.style.opacity = '1';
+        }
+      });
+    }
+
+    // Toggle on tap/click
+    explodeContainer.addEventListener('click', () => {
+      if (isExploded) {
+        reassemble();
+      } else {
+        explode();
+        // Auto-reassemble after delay
+        setTimeout(() => {
+          if (isExploded && !isAnimating) {
+            reassemble();
+          }
+        }, 1500);
+      }
+    });
+
+    // Initialize with delay
+    setTimeout(initExplode, 300);
   </script>
 
 </body>
