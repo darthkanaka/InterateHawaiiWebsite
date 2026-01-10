@@ -372,6 +372,7 @@
       splitText,
       utils,
       createTimeline,
+      createTimer,
       svg
     } from 'https://esm.sh/animejs';
 
@@ -654,10 +655,16 @@
         clearInterval(particleInterval);
         particleInterval = null;
       }
+      if (particleTimer) {
+        particleTimer.pause();
+        particleTimer = null;
+      }
       particles.forEach(p => p.el.remove());
       particles = [];
       isAnimating = false;
     }
+
+    let particleTimer = null;
 
     function animateMotionPath() {
       // Clear any existing particles
@@ -672,9 +679,14 @@
       utils.set(logoDrawable, { draw: '0 0' });
       utils.set(motionDot, { opacity: 1, scale: 1 });
 
-      const tl = createTimeline({
-        defaults: { ease: 'linear' },
+      // Create a timer for particle updates (per documentation pattern)
+      particleTimer = createTimer({
+        duration: 5500,
         onUpdate: self => updateParticles(self.deltaTime)
+      });
+
+      const tl = createTimeline({
+        defaults: { ease: 'linear' }
       });
 
       // Draw HI logo with playbackEase to vary speed at corners
