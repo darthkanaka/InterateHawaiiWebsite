@@ -578,10 +578,10 @@
       particle.posY = startY;
       particle.speed = utils.random(0.08, 0.15);
 
-      // Set initial position
+      // Set initial position using transforms
       utils.set(particle, {
-        left: startX + 'px',
-        top: startY + 'px',
+        translateX: startX,
+        translateY: startY,
         opacity: 0,
         scale: utils.random(2, 4),
         filter: 'blur(8px)'
@@ -612,9 +612,11 @@
         particle.posX += (dotPos.x - particle.posX) * particle.speed;
         particle.posY += (dotPos.y - particle.posY) * particle.speed;
 
-        // Apply position update
-        particle.style.left = particle.posX + 'px';
-        particle.style.top = particle.posY + 'px';
+        // Apply position update using translateX/Y transforms
+        utils.set(particle, {
+          translateX: particle.posX,
+          translateY: particle.posY
+        });
       });
     }
 
