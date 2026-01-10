@@ -372,7 +372,6 @@
       splitText,
       utils,
       createTimeline,
-      createAnimatable,
       svg
     } from 'https://esm.sh/animejs';
 
@@ -559,7 +558,7 @@
       };
     }
 
-    // Spawn a particle using createAnimatable for position tracking
+    // Spawn a particle with position tracking
     function spawnParticle() {
       const el = document.createElement('div');
       el.className = 'particle';
@@ -574,33 +573,28 @@
       const startX = dotPos.x + Math.cos(angle) * distance;
       const startY = dotPos.y + Math.sin(angle) * distance;
 
-      // Set initial position
-      utils.set(el, {
-        left: startX + 'px',
-        top: startY + 'px'
-      });
-
-      // Create animatable for this particle's position - this allows continuous target updates
-      const animatable = createAnimatable(el, {
-        left: { duration: 100, ease: 'out(2)' },
-        top: { duration: 100, ease: 'out(2)' },
-        opacity: { duration: 200 },
-        scale: { duration: 200 },
-        filter: { duration: 200 }
-      });
-
-      // Store particle data
+      // Store particle data with current position
       const particle = {
         el,
-        animatable,
+        x: startX,
+        y: startY,
         startTime: Date.now(),
         duration: utils.random(800, 1200)
       };
 
+      // Set initial visual position
+      utils.set(el, {
+        left: startX + 'px',
+        top: startY + 'px',
+        opacity: 0,
+        scale: 3,
+        filter: 'blur(4px)'
+      });
+
       particles.push(particle);
     }
 
-    // Update particle positions toward current dot position
+    // Update particle positions toward current dot position using lerp
     function updateParticlePositions() {
       const dotPos = getDotPosition();
       const now = Date.now();
@@ -609,12 +603,13 @@
         const elapsed = now - particle.startTime;
         const progress = Math.min(elapsed / particle.duration, 1);
 
-        // Update position target - animatable will smoothly animate to it
-        particle.animatable.left(dotPos.x);
-        particle.animatable.top(dotPos.y);
+        // Lerp current position toward dot position
+        // Speed increases as particle gets closer (eased movement)
+        const lerpSpeed = 0.08 + progress * 0.12;
+        particle.x += (dotPos.x - particle.x) * lerpSpeed;
+        particle.y += (dotPos.y - particle.y) * lerpSpeed;
 
-        // Update visual properties based on progress
-        // Opacity: fade in, hold, fade out
+        // Calculate visual properties based on progress
         let opacity;
         if (progress < 0.1) {
           opacity = progress / 0.1 * 0.9;
@@ -623,11 +618,18 @@
         } else {
           opacity = 0.9;
         }
-        particle.animatable.opacity(opacity);
 
-        // Scale: large to small
         const scale = utils.lerp(3, 0.3, progress);
-        particle.animatable.scale(scale);
+        const blur = utils.lerp(4, 0, progress);
+
+        // Apply all visual updates at once
+        utils.set(particle.el, {
+          left: particle.x + 'px',
+          top: particle.y + 'px',
+          opacity: opacity,
+          scale: scale,
+          filter: 'blur(' + blur + 'px)'
+        });
       });
 
       // Remove completed particles
