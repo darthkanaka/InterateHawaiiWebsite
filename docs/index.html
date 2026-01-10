@@ -321,7 +321,7 @@
     const scrollCards = utils.$('.scroll-card');
     const scrollPercent = document.getElementById('scroll-percent');
 
-    // Scroll-synced animation - using min/max thresholds for guaranteed full 0-100% range
+    // Scroll-synced animation - using percentage offsets for reliable 0-100% range
     animate(scrollCards, {
       translateY: [150, 0],
       translateX: (el, i) => [(i - 1) * 100, 0],
@@ -332,8 +332,10 @@
       delay: stagger(200),
       autoplay: onScroll({
         target: scrollSection,
-        enter: 'max top',
-        leave: 'min bottom',
+        // Start at 0% when section top is 10% into viewport
+        // End at 100% when section has 10% left to scroll
+        enter: '10% 0%',
+        leave: '90% 100%',
         sync: true,
         debug: true,
         onUpdate: (self) => {
