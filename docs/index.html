@@ -587,18 +587,20 @@
     const EXPLODE_ROWS = 10;
 
     // HI logo shape as a bitmap (1 = filled, 0 = empty)
-    // 14 cols x 10 rows - proper H and I letter shapes
+    // The FILLED areas form two connected columns (Roman numeral II style)
+    // The EMPTY areas (0s) form "HI" in negative space
+    // 14 cols x 10 rows
     const HI_SHAPE = [
-      [1,1,0,0,0,0,1,1,0,0,1,1,1,1],  // H: left bar + right bar, I: full
-      [1,1,0,0,0,0,1,1,0,0,1,1,1,1],
-      [1,1,0,0,0,0,1,1,0,0,1,1,1,1],
-      [1,1,0,0,0,0,1,1,0,0,1,1,1,1],
-      [1,1,1,1,1,1,1,1,0,0,1,1,1,1],  // H: crossbar
-      [1,1,1,1,1,1,1,1,0,0,1,1,1,1],  // H: crossbar
-      [1,1,0,0,0,0,1,1,0,0,1,1,1,1],
-      [1,1,0,0,0,0,1,1,0,0,1,1,1,1],
-      [1,1,0,0,0,0,1,1,0,0,1,1,1,1],
-      [1,1,0,0,0,0,1,1,0,0,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1],  // Top connected
+      [1,0,0,1,1,0,0,1,1,1,0,0,1,1],  // H left | H right | I
+      [1,0,0,1,1,0,0,1,1,1,0,0,1,1],
+      [1,0,0,1,1,0,0,1,1,1,0,0,1,1],
+      [1,0,0,0,0,0,0,1,1,1,0,0,1,1],  // H crossbar (negative space)
+      [1,0,0,0,0,0,0,1,1,1,0,0,1,1],
+      [1,0,0,1,1,0,0,1,1,1,0,0,1,1],
+      [1,0,0,1,1,0,0,1,1,1,0,0,1,1],
+      [1,0,0,1,1,0,0,1,1,1,0,0,1,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1],  // Bottom connected
     ];
 
     // Generate grid pieces
