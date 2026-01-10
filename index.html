@@ -337,7 +337,10 @@
     const scrollCards = utils.$('.scroll-card');
     const scrollPercent = document.getElementById('scroll-percent');
 
-    // Scroll-synced animation with eased sync mode (allows stagger)
+    // Scroll-synced animation following documentation patterns
+    // Threshold format: '<container position> <target position>'
+    // enter: 'bottom top' = enter when bottom of viewport meets top of section
+    // leave: 'top bottom' = leave when top of viewport meets bottom of section
     animate(scrollCards, {
       translateY: [100, 0],
       translateX: (el, i) => [(i - 1) * 50, 0],
@@ -347,9 +350,9 @@
       delay: stagger(100),
       autoplay: onScroll({
         target: scrollSection,
-        enter: 'top center',
-        leave: 'bottom top',
-        sync: 'outQuad',
+        enter: 'bottom top',
+        leave: 'top bottom',
+        sync: true,
         debug: true,
         onUpdate: (self) => {
           scrollPercent.textContent = Math.round(self.progress * 100);
