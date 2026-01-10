@@ -67,21 +67,29 @@
        ============================================ */
     #grid-section {
       background: linear-gradient(180deg, var(--dark) 0%, #0f0f18 100%);
+    }
+
+    .grid-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 100%;
       overflow: hidden;
-      max-width: 100vw;
+      padding: 0 20px;
+      box-sizing: border-box;
     }
 
     .grid-container {
       display: grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
-      gap: 12px;
-      max-width: 500px;
-      width: calc(100% - 60px);
+      grid-template-columns: repeat(8, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 400px;
     }
 
     .grid-item {
       aspect-ratio: 1;
-      min-width: 0;
       background: var(--accent);
       border-radius: 8px;
       opacity: 0;
@@ -259,7 +267,7 @@
       section { padding: 60px 20px; }
       h2 { font-size: 1.8rem; }
       .section-desc { font-size: 1rem; padding: 0 10px; }
-      .grid-container { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; width: calc(100% - 80px); max-width: 280px; }
+      .grid-container { grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 260px; }
       .scroll-card { width: 90px; height: 120px; font-size: 1.5rem; }
       .scroll-cards { gap: 12px; }
       .motion-container { width: 100%; max-width: 320px; height: 220px; }
@@ -271,12 +279,14 @@
 
   <!-- 1. Staggered Grid Animation -->
   <section id="grid-section">
-    <h2>Staggered Grid Entrance</h2>
-    <p class="section-desc">Elements animate in with staggered delays from a random origin point, creating a ripple effect across the grid.</p>
-    <div class="grid-container" id="grid">
-      <!-- 48 grid items (6 rows x 8 cols) -->
+    <div class="grid-wrapper">
+      <h2>Staggered Grid Entrance</h2>
+      <p class="section-desc">Elements animate in with staggered delays from a random origin point, creating a ripple effect across the grid.</p>
+      <div class="grid-container" id="grid">
+        <!-- 48 grid items (6 rows x 8 cols) -->
+      </div>
+      <button class="replay-btn" id="replay-grid">Replay Animation</button>
     </div>
-    <button class="replay-btn" id="replay-grid">Replay Animation</button>
   </section>
 
   <!-- 2. Scroll-Triggered Animation -->
