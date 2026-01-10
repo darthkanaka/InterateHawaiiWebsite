@@ -101,7 +101,7 @@
        2. SCROLL-TRIGGERED ANIMATION
        ============================================ */
     #scroll-section {
-      min-height: 200vh;
+      min-height: 350vh;
       background: linear-gradient(180deg, #0f0f18 0%, #0a0a12 100%);
       justify-content: flex-start;
       padding-top: 40vh;
@@ -133,7 +133,7 @@
       font-size: 3rem;
       font-weight: 700;
       color: var(--dark);
-      transform: translateY(100px) rotate(10deg);
+      transform: translateY(150px) rotate(25deg) scale(0.5);
       opacity: 0;
     }
 
@@ -141,6 +141,16 @@
       margin-top: 2rem;
       font-size: 1rem;
       color: var(--text-muted);
+    }
+
+    /* Debug timeline markers - hidden by default, fade in/out */
+    [data-anime-scroll-debug] {
+      opacity: 0 !important;
+      transition: opacity 0.5s ease !important;
+    }
+
+    body.show-debug [data-anime-scroll-debug] {
+      opacity: 1 !important;
     }
 
     /* ============================================
@@ -342,18 +352,25 @@
     // enter: 'bottom top' = enter when bottom of viewport meets top of section
     // leave: 'top bottom' = leave when top of viewport meets bottom of section
     animate(scrollCards, {
-      translateY: [100, 0],
-      translateX: (el, i) => [(i - 1) * 50, 0],
-      rotate: (el, i) => [15 - i * 10, 0],
+      translateY: [150, 0],
+      translateX: (el, i) => [(i - 1) * 100, 0],
+      rotate: (el, i) => [25 - i * 15, 0],
+      scale: [0.5, 1],
       opacity: [0, 1],
       ease: 'linear',
-      delay: stagger(100),
+      delay: stagger(200),
       autoplay: onScroll({
         target: scrollSection,
         enter: 'bottom top',
         leave: 'top bottom',
         sync: true,
         debug: true,
+        onEnter: () => {
+          document.body.classList.add('show-debug');
+        },
+        onLeave: () => {
+          document.body.classList.remove('show-debug');
+        },
         onUpdate: (self) => {
           scrollPercent.textContent = Math.round(self.progress * 100);
         }
