@@ -545,12 +545,10 @@
     const motionDot = document.getElementById('motion-dot');
     const motionContainer = document.querySelector('.motion-container');
     let particles = [];
-    let particleInterval = null;
-    let animationFrameId = null;
-    let isAnimating = false;
-    let lastTime = 0;
+    let particleSpawnInterval = null;
+    let particleUpdateInterval = null;
 
-    // Get dot position relative to container (same logic that worked at spawn)
+    // Get current dot position (this worked at spawn time originally)
     function getDotPosition() {
       const dotRect = motionDot.getBoundingClientRect();
       const containerRect = motionContainer.getBoundingClientRect();
@@ -560,119 +558,83 @@
       };
     }
 
-    // Create a particle with state tracking
-    function createParticle() {
-      const el = document.createElement('div');
-      el.className = 'particle';
-      motionContainer.appendChild(el);
+    // Spawn a particle - original working method
+    function spawnParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      motionContainer.appendChild(particle);
 
+      // Get dot position at spawn time
       const dotPos = getDotPosition();
+
+      // Random starting position around the dot
       const angle = utils.random(0, Math.PI * 2);
       const distance = utils.random(150, 300);
-      const initialScale = utils.random(2.5, 4);
+      const startX = dotPos.x + Math.cos(angle) * distance;
+      const startY = dotPos.y + Math.sin(angle) * distance;
 
-      return {
-        el,
-        x: dotPos.x + Math.cos(angle) * distance,
-        y: dotPos.y + Math.sin(angle) * distance,
-        initialScale: initialScale,
-        blur: 8,
+      // Store position data on the element
+      particle.posX = startX;
+      particle.posY = startY;
+      particle.speed = utils.random(0.08, 0.15);
+
+      // Set initial position
+      utils.set(particle, {
+        left: startX + 'px',
+        top: startY + 'px',
         opacity: 0,
-        age: 0,
-        maxAge: utils.random(800, 1200),
-        speed: utils.random(0.08, 0.15)
-      };
-    }
+        scale: utils.random(2, 4),
+        filter: 'blur(8px)'
+      });
 
-    // Spawn a new particle
-    function spawnParticle() {
-      if (!isAnimating) return;
-      const particle = createParticle();
+      // Animate visual properties (opacity, scale, blur) - this part worked
+      animate(particle, {
+        opacity: [0, 0.8, 1, 0],
+        scale: [utils.random(2, 4), 1, 0.3],
+        filter: ['blur(8px)', 'blur(2px)', 'blur(0px)'],
+        duration: utils.random(600, 1000),
+        ease: 'inQuad',
+        onComplete: () => {
+          particle.remove();
+          particles = particles.filter(p => p !== particle);
+        }
+      });
+
       particles.push(particle);
-
-      // Set initial visual state
-      particle.el.style.left = particle.x + 'px';
-      particle.el.style.top = particle.y + 'px';
-      particle.el.style.opacity = '0';
-      particle.el.style.transform = `scale(${particle.initialScale})`;
-      particle.el.style.filter = `blur(${particle.blur}px)`;
     }
 
-    // Animation loop using requestAnimationFrame
-    function particleLoop(currentTime) {
-      if (!isAnimating) return;
-
-      const deltaTime = lastTime ? currentTime - lastTime : 16;
-      lastTime = currentTime;
-
-      // Get CURRENT dot position each frame
+    // Update particle positions toward current dot position
+    function updateParticlePositions() {
       const dotPos = getDotPosition();
 
       particles.forEach(particle => {
-        particle.age += deltaTime;
-        const progress = Math.min(particle.age / particle.maxAge, 1);
+        // Move toward current dot position
+        particle.posX += (dotPos.x - particle.posX) * particle.speed;
+        particle.posY += (dotPos.y - particle.posY) * particle.speed;
 
-        // Move toward CURRENT dot position
-        particle.x += (dotPos.x - particle.x) * particle.speed;
-        particle.y += (dotPos.y - particle.y) * particle.speed;
-
-        // Blur decreases as particle ages (sharp when near end)
-        const blur = utils.lerp(8, 0, progress);
-
-        // Scale decreases from initial scale as particle approaches
-        const scale = utils.lerp(particle.initialScale, 0.2, progress);
-
-        // Opacity: fade in, stay visible, fade out at end
-        let opacity;
-        if (progress < 0.1) {
-          opacity = utils.lerp(0, 0.9, progress / 0.1);
-        } else if (progress > 0.85) {
-          opacity = utils.lerp(0.9, 0, (progress - 0.85) / 0.15);
-        } else {
-          opacity = 0.9;
-        }
-
-        // Apply visual updates directly to style
-        particle.el.style.left = particle.x + 'px';
-        particle.el.style.top = particle.y + 'px';
-        particle.el.style.opacity = opacity;
-        particle.el.style.transform = `scale(${scale})`;
-        particle.el.style.filter = `blur(${blur.toFixed(1)}px)`;
+        // Apply position update
+        particle.style.left = particle.posX + 'px';
+        particle.style.top = particle.posY + 'px';
       });
-
-      // Remove dead particles
-      particles = particles.filter(p => {
-        if (p.age >= p.maxAge) {
-          p.el.remove();
-          return false;
-        }
-        return true;
-      });
-
-      // Continue the loop
-      animationFrameId = requestAnimationFrame(particleLoop);
     }
 
     // Clear all particles
     function clearParticles() {
-      if (particleInterval) {
-        clearInterval(particleInterval);
-        particleInterval = null;
+      if (particleSpawnInterval) {
+        clearInterval(particleSpawnInterval);
+        particleSpawnInterval = null;
       }
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
+      if (particleUpdateInterval) {
+        clearInterval(particleUpdateInterval);
+        particleUpdateInterval = null;
       }
-      particles.forEach(p => p.el.remove());
+      particles.forEach(p => p.remove());
       particles = [];
-      isAnimating = false;
-      lastTime = 0;
     }
 
     function animateMotionPath() {
       // Clear any existing particles
       clearParticles();
-      isAnimating = true;
 
       // Create drawable proxy for the logo path
       const logoDrawable = svg.createDrawable('#hi-logo-path');
@@ -700,14 +662,16 @@
         playbackEase: 'inOutSine'
       }, 0);
 
-      // Start spawning particles and the animation loop
-      particleInterval = setInterval(spawnParticle, 60);
-      animationFrameId = requestAnimationFrame(particleLoop);
+      // Spawn particles every 60ms
+      particleSpawnInterval = setInterval(spawnParticle, 60);
 
-      // Stop particle spawning near end of animation
+      // Update particle positions every 16ms (≈60fps)
+      particleUpdateInterval = setInterval(updateParticlePositions, 16);
+
+      // Stop spawning near end
       tl.call(() => {
-        clearInterval(particleInterval);
-        particleInterval = null;
+        clearInterval(particleSpawnInterval);
+        particleSpawnInterval = null;
       }, 4500);
 
       // Fade out dot at the end
@@ -717,7 +681,8 @@
         duration: 500,
         ease: 'outQuad',
         onComplete: () => {
-          isAnimating = false;
+          clearInterval(particleUpdateInterval);
+          particleUpdateInterval = null;
         }
       });
     }
