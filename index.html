@@ -588,11 +588,10 @@
         filter: 'blur(4px)'
       });
 
-      // Animate visual properties (opacity, scale, blur) - these don't need tracking
+      // Animate visual properties (opacity, scale) - blur handled in position update
       animate(el, {
         opacity: [0, 0.9, 0.9, 0],
         scale: [3, 0.3],
-        filter: ['blur(4px)', 'blur(0px)'],
         duration: particle.duration,
         ease: 'linear'
       });
@@ -609,15 +608,23 @@
         const elapsed = now - particle.startTime;
         const progress = Math.min(elapsed / particle.duration, 1);
 
-        // Lerp position toward current dot position
-        const speed = 0.06 + progress * 0.14;
+        // Ease-in curve: slow at spawn, accelerates toward dot
+        const eased = progress * progress * progress;
+        const speed = 0.02 + eased * 0.3;
         particle.x += (dotPos.x - particle.x) * speed;
         particle.y += (dotPos.y - particle.y) * speed;
 
-        // Update position only (visuals handled by animate())
+        // Calculate blur based on distance to dot (sharp when close)
+        const dx = dotPos.x - particle.x;
+        const dy = dotPos.y - particle.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const blur = Math.min(4, distance / 50); // 0 blur when within ~50px
+
+        // Update position and blur
         utils.set(particle.el, {
           left: particle.x + 'px',
-          top: particle.y + 'px'
+          top: particle.y + 'px',
+          filter: 'blur(' + blur + 'px)'
         });
       });
 
