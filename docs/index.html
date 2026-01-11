@@ -213,7 +213,7 @@
       z-index: 10;
     }
 
-    .particle {
+    .motion-particle {
       position: absolute;
       width: 8px;
       height: 8px;
@@ -400,23 +400,25 @@
     const scrollPercent = document.getElementById('scroll-percent');
 
     // Use equal spacing for even grid - calculate cols/rows from viewport
-    const PARTICLE_SPACING = window.innerWidth <= 600 ? 24 : 32;
+    const isMobile = window.innerWidth <= 600;
+    const PARTICLE_SPACING = isMobile ? 24 : 32;
+    const PARTICLE_SIZE = isMobile ? 4 : 6;
     const fieldWidth = window.innerWidth;
     const fieldHeight = window.innerHeight;
-    const PARTICLE_COLS = Math.floor(fieldWidth / PARTICLE_SPACING);
-    const PARTICLE_ROWS = Math.floor(fieldHeight / PARTICLE_SPACING);
+    const PARTICLE_COLS = Math.floor(fieldWidth / PARTICLE_SPACING) + 1;
+    const PARTICLE_ROWS = Math.floor(fieldHeight / PARTICLE_SPACING) + 1;
     const TOTAL_PARTICLES = PARTICLE_COLS * PARTICLE_ROWS;
 
-    // Generate particles with equal spacing
+    // Generate particles edge-to-edge, centered on grid points
     for (let row = 0; row < PARTICLE_ROWS; row++) {
       for (let col = 0; col < PARTICLE_COLS; col++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
-        // Position with equal spacing from edges
-        const x = (col + 0.5) * PARTICLE_SPACING;
-        const y = (row + 0.5) * PARTICLE_SPACING;
-        particle.style.left = x + 'px';
-        particle.style.top = y + 'px';
+        // Position from edge to edge, offset by half particle size to center
+        const x = PARTICLE_COLS > 1 ? (col / (PARTICLE_COLS - 1)) * fieldWidth : fieldWidth / 2;
+        const y = PARTICLE_ROWS > 1 ? (row / (PARTICLE_ROWS - 1)) * fieldHeight : fieldHeight / 2;
+        particle.style.left = (x - PARTICLE_SIZE / 2) + 'px';
+        particle.style.top = (y - PARTICLE_SIZE / 2) + 'px';
         particleField.appendChild(particle);
       }
     }
@@ -523,7 +525,7 @@
     // Spawn a particle - animate it toward dot with continuous position updates
     function spawnParticle() {
       const el = document.createElement('div');
-      el.className = 'particle';
+      el.className = 'motion-particle';
       motionContainer.appendChild(el);
 
       const dotPos = getDotPosition();
