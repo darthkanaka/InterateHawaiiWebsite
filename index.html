@@ -71,10 +71,10 @@
 
     .grid-container {
       display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 10px;
-      width: 400px;
-      height: 400px;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      width: 280px;
+      height: 180px;
     }
 
     .grid-item {
@@ -343,11 +343,17 @@
     // 1. STAGGERED GRID ANIMATION
     // ============================================
     const gridContainer = document.getElementById('grid');
-    const COLS = 8;
-    const ROWS = 6;
+
+    // Responsive grid: 6x4 on desktop, 4x6 on mobile
+    function getGridDimensions() {
+      const isMobile = window.innerWidth <= 600;
+      return isMobile ? [4, 6] : [6, 4];
+    }
+
+    const TOTAL_ITEMS = 24;
 
     // Generate grid items
-    for (let i = 0; i < COLS * ROWS; i++) {
+    for (let i = 0; i < TOTAL_ITEMS; i++) {
       const item = document.createElement('div');
       item.className = 'grid-item';
       gridContainer.appendChild(item);
@@ -355,6 +361,7 @@
 
     function animateGrid() {
       const items = utils.$('.grid-item');
+      const [cols, rows] = getGridDimensions();
 
       // Reset items
       utils.set(items, { opacity: 0, scale: 0, rotate: 0 });
@@ -365,8 +372,8 @@
         scale: [0, 1],
         rotate: [45, 0],
         delay: stagger(50, {
-          grid: [COLS, ROWS],
-          from: utils.random(0, COLS * ROWS - 1)
+          grid: [cols, rows],
+          from: utils.random(0, TOTAL_ITEMS - 1)
         }),
         duration: 600,
         ease: 'outQuad'
