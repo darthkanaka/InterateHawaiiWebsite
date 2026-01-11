@@ -128,10 +128,10 @@
 
     .particle-field {
       position: relative;
-      width: 280px;
-      height: 200px;
+      width: 320px;
+      height: 240px;
       margin-top: 1.5rem;
-      touch-action: none;
+      touch-action: pan-y;
       -webkit-user-select: none;
       user-select: none;
     }
@@ -256,7 +256,7 @@
       h2 { font-size: 1.8rem; max-width: calc(100vw - 40px); }
       .section-desc { font-size: 1rem; padding: 0 10px; }
       .grid-container { grid-template-columns: repeat(4, 1fr); gap: 6px; width: 200px; max-width: calc(100vw - 40px); height: auto; }
-      .particle-field { width: 240px; height: 180px; }
+      .particle-field { width: 280px; height: 210px; }
       .particle { width: 5px; height: 5px; }
       .motion-container { width: 100%; max-width: 320px; height: 220px; }
       .glitch-container { width: 100%; max-width: 320px; height: 220px; }
@@ -397,8 +397,8 @@
 
     // Get field dimensions
     const fieldRect = particleField.getBoundingClientRect();
-    const fieldWidth = fieldRect.width || 280;
-    const fieldHeight = fieldRect.height || 200;
+    const fieldWidth = fieldRect.width || 320;
+    const fieldHeight = fieldRect.height || 240;
 
     // Generate particles with absolute positions
     for (let row = 0; row < PARTICLE_ROWS; row++) {
@@ -467,7 +467,8 @@
         delay: stagger(15, {
           grid: [PARTICLE_COLS, PARTICLE_ROWS],
           from: fromIndex
-        })
+        }),
+        playbackRate: 0.33
       });
     }
 
