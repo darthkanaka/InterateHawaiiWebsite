@@ -127,11 +127,9 @@
     }
 
     .particle-field {
-      display: grid;
-      grid-template-columns: repeat(20, 1fr);
-      gap: 8px;
-      width: 320px;
-      height: 240px;
+      position: relative;
+      width: 280px;
+      height: 200px;
       margin-top: 1.5rem;
       touch-action: none;
       -webkit-user-select: none;
@@ -139,12 +137,12 @@
     }
 
     .particle {
-      width: 100%;
-      aspect-ratio: 1;
+      position: absolute;
+      width: 6px;
+      height: 6px;
       background: var(--accent-2);
       border-radius: 50%;
-      opacity: 0.6;
-      transform: scale(1);
+      opacity: 0.5;
       will-change: transform, opacity;
     }
 
@@ -258,7 +256,8 @@
       h2 { font-size: 1.8rem; max-width: calc(100vw - 40px); }
       .section-desc { font-size: 1rem; padding: 0 10px; }
       .grid-container { grid-template-columns: repeat(4, 1fr); gap: 6px; width: 200px; max-width: calc(100vw - 40px); height: auto; }
-      .particle-field { grid-template-columns: repeat(12, 1fr); gap: 6px; width: 240px; height: 200px; }
+      .particle-field { width: 240px; height: 180px; }
+      .particle { width: 5px; height: 5px; }
       .motion-container { width: 100%; max-width: 320px; height: 220px; }
       .glitch-container { width: 100%; max-width: 320px; height: 220px; }
     }
@@ -391,20 +390,28 @@
     const particleField = document.getElementById('particle-field');
     const scrollPercent = document.getElementById('scroll-percent');
 
-    // Responsive particle grid dimensions
-    function getParticleGridDimensions() {
-      const isMobile = window.innerWidth <= 600;
-      return isMobile ? [12, 10] : [20, 12];
-    }
-
-    let [PARTICLE_COLS, PARTICLE_ROWS] = getParticleGridDimensions();
+    // Particle grid configuration
+    const PARTICLE_COLS = 16;
+    const PARTICLE_ROWS = 12;
     const TOTAL_PARTICLES = PARTICLE_COLS * PARTICLE_ROWS;
 
-    // Generate particles
-    for (let i = 0; i < TOTAL_PARTICLES; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particleField.appendChild(particle);
+    // Get field dimensions
+    const fieldRect = particleField.getBoundingClientRect();
+    const fieldWidth = fieldRect.width || 280;
+    const fieldHeight = fieldRect.height || 200;
+
+    // Generate particles with absolute positions
+    for (let row = 0; row < PARTICLE_ROWS; row++) {
+      for (let col = 0; col < PARTICLE_COLS; col++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        // Position based on grid
+        const x = (col / (PARTICLE_COLS - 1)) * (fieldWidth - 6);
+        const y = (row / (PARTICLE_ROWS - 1)) * (fieldHeight - 6);
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particleField.appendChild(particle);
+      }
     }
 
     const particleElements = utils.$('.particle');
@@ -421,11 +428,13 @@
     });
 
     // Ripple animation from touch/mouse point
-    let isRippling = false;
+    let lastRippleTime = 0;
+    const RIPPLE_COOLDOWN = 400; // ms between ripples
 
     function triggerRipple(clientX, clientY) {
-      if (isRippling) return;
-      isRippling = true;
+      const now = Date.now();
+      if (now - lastRippleTime < RIPPLE_COOLDOWN) return;
+      lastRippleTime = now;
 
       // Get particle field bounds
       const rect = particleField.getBoundingClientRect();
@@ -441,50 +450,45 @@
       // Convert to grid index
       const col = Math.floor(clampedX * PARTICLE_COLS);
       const row = Math.floor(clampedY * PARTICLE_ROWS);
-      const fromIndex = row * PARTICLE_COLS + col;
+      const fromIndex = utils.clamp(row * PARTICLE_COLS + col, 0, TOTAL_PARTICLES - 1);
 
       // Animate ripple outward from touch point
       animate(particleElements, {
         scale: [
-          { to: 1.8, duration: 150, ease: 'outQuad' },
-          { to: 0.3, duration: 200, ease: 'inQuad' },
-          { to: 1, duration: 300, ease: 'outElastic(1, .5)' }
+          { to: 2.5, duration: 100, ease: 'outQuad' },
+          { to: 0.5, duration: 150, ease: 'inQuad' },
+          { to: 1, duration: 200, ease: 'outQuad' }
         ],
         opacity: [
-          { to: 1, duration: 150 },
-          { to: 0.3, duration: 200 },
-          { to: 0.6, duration: 300 }
+          { to: 1, duration: 100 },
+          { to: 0.2, duration: 150 },
+          { to: 0.5, duration: 200 }
         ],
-        delay: stagger(25, {
+        delay: stagger(15, {
           grid: [PARTICLE_COLS, PARTICLE_ROWS],
           from: fromIndex
-        }),
-        onComplete: () => {
-          isRippling = false;
-        }
+        })
       });
     }
 
-    // Touch events
+    // Touch events - don't prevent default to allow scroll
     particleField.addEventListener('touchstart', (e) => {
-      e.preventDefault();
       const touch = e.touches[0];
       triggerRipple(touch.clientX, touch.clientY);
-    }, { passive: false });
+    });
 
     particleField.addEventListener('touchmove', (e) => {
-      e.preventDefault();
       const touch = e.touches[0];
       triggerRipple(touch.clientX, touch.clientY);
-    }, { passive: false });
+    });
 
     // Mouse events
-    particleField.addEventListener('mousedown', (e) => {
+    particleField.addEventListener('click', (e) => {
       triggerRipple(e.clientX, e.clientY);
     });
 
     particleField.addEventListener('mousemove', (e) => {
-      if (e.buttons === 1) { // Left mouse button held
+      if (e.buttons === 1) {
         triggerRipple(e.clientX, e.clientY);
       }
     });
