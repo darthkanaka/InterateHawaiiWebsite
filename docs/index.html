@@ -69,23 +69,12 @@
       background: linear-gradient(180deg, var(--dark) 0%, #0f0f18 100%);
     }
 
-    .grid-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      max-width: 100%;
-      overflow: hidden;
-      padding: 0 20px;
-      box-sizing: border-box;
-    }
-
     .grid-container {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
       gap: 10px;
-      width: 100%;
-      max-width: 400px;
+      width: 400px;
+      height: 400px;
     }
 
     .grid-item {
@@ -267,7 +256,7 @@
       section { padding: 60px 20px; }
       h2 { font-size: 1.8rem; }
       .section-desc { font-size: 1rem; padding: 0 10px; }
-      .grid-container { grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 260px; }
+      .grid-container { grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 260px; height: auto; }
       .scroll-card { width: 90px; height: 120px; font-size: 1.5rem; }
       .scroll-cards { gap: 12px; }
       .motion-container { width: 100%; max-width: 320px; height: 220px; }
@@ -279,14 +268,12 @@
 
   <!-- 1. Staggered Grid Animation -->
   <section id="grid-section">
-    <div class="grid-wrapper">
-      <h2>Staggered Grid Entrance</h2>
-      <p class="section-desc">Elements animate in with staggered delays from a random origin point, creating a ripple effect across the grid.</p>
-      <div class="grid-container" id="grid">
-        <!-- 48 grid items (6 rows x 8 cols) -->
-      </div>
-      <button class="replay-btn" id="replay-grid">Replay Animation</button>
+    <h2>Staggered Grid Entrance</h2>
+    <p class="section-desc">Elements animate in with staggered delays from a random origin point, creating a ripple effect across the grid.</p>
+    <div class="grid-container" id="grid">
+      <!-- 48 grid items (6 rows x 8 cols) -->
     </div>
+    <button class="replay-btn" id="replay-grid">Replay Animation</button>
   </section>
 
   <!-- 2. Scroll-Triggered Animation -->
