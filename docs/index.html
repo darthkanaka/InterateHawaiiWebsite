@@ -394,26 +394,24 @@
     const particleField = document.getElementById('particle-field');
     const scrollPercent = document.getElementById('scroll-percent');
 
-    // Particle grid configuration - larger grid for fullscreen
-    const PARTICLE_COLS = 24;
-    const PARTICLE_ROWS = 16;
-    const TOTAL_PARTICLES = PARTICLE_COLS * PARTICLE_ROWS;
-
-    // Use viewport dimensions for fullscreen particle field
+    // Use equal spacing for even grid - calculate cols/rows from viewport
+    const PARTICLE_SPACING = window.innerWidth <= 600 ? 24 : 32;
     const fieldWidth = window.innerWidth;
     const fieldHeight = window.innerHeight;
-    const particleSize = window.innerWidth <= 600 ? 4 : 6;
+    const PARTICLE_COLS = Math.floor(fieldWidth / PARTICLE_SPACING);
+    const PARTICLE_ROWS = Math.floor(fieldHeight / PARTICLE_SPACING);
+    const TOTAL_PARTICLES = PARTICLE_COLS * PARTICLE_ROWS;
 
-    // Generate particles with absolute positions across viewport
+    // Generate particles with equal spacing
     for (let row = 0; row < PARTICLE_ROWS; row++) {
       for (let col = 0; col < PARTICLE_COLS; col++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
-        // Position based on grid - use percentage for responsiveness
-        const xPercent = (col / (PARTICLE_COLS - 1)) * 100;
-        const yPercent = (row / (PARTICLE_ROWS - 1)) * 100;
-        particle.style.left = xPercent + '%';
-        particle.style.top = yPercent + '%';
+        // Position with equal spacing from edges
+        const x = (col + 0.5) * PARTICLE_SPACING;
+        const y = (row + 0.5) * PARTICLE_SPACING;
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
         particleField.appendChild(particle);
       }
     }
